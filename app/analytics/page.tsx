@@ -6,210 +6,82 @@ import { SolarChart } from '@/components/charts/SolarChart';
 import { BatteryChart } from '@/components/charts/BatteryChart';
 import { CarbonChart } from '@/components/charts/CarbonChart';
 import { CostChart } from '@/components/charts/CostChart';
-import { MOCK_DASHBOARD_METRICS } from '@/data/dashboard';
-import {
-  BarChart3,
-  Zap,
-  Sun,
-  BatteryCharging,
-  Leaf,
-  DollarSign,
-  Calendar,
-  Download,
-  Filter,
-} from 'lucide-react';
+import { BarChart3, Zap, Sun, BatteryCharging, Leaf, DollarSign, Download } from 'lucide-react';
 
 export default function AnalyticsPage() {
   const [activeTab, setActiveTab] = useState<'all' | 'demand' | 'solar' | 'battery' | 'carbon' | 'cost'>('all');
   const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h');
 
   return (
-    <div className="space-y-8 pb-16">
-      {/* Header Banner */}
-      <div className="glass-card rounded-2xl p-6 border border-slate-800 flex flex-wrap items-center justify-between gap-6 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-              <BarChart3 className="w-6 h-6" />
-            </span>
-            <h1 className="text-2xl font-extrabold text-slate-100 tracking-tight">
-              Voltix Microgrid Analytics
-            </h1>
-          </div>
-          <p className="text-xs text-slate-400">
-            Interactive multi-parameter telemetry charts: Demand, Solar, Battery, Carbon, & Cost
+    <div className="space-y-8 pb-16 pt-4">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div>
+          <h1 className="text-3xl font-light tracking-tight text-zinc-100 flex items-center gap-3">
+             <BarChart3 className="w-8 h-8 text-aiBlue" /> Voltix Analytics
+          </h1>
+          <p className="text-sm text-zinc-400 mt-1">
+             Compare campus performance <span className="text-zinc-300 font-semibold">Without AI</span> vs <span className="text-emerald-400 font-semibold">With Voltix</span>
           </p>
         </div>
-
-        {/* Controls */}
-        <div className="flex items-center space-x-3">
-          <div className="flex items-center space-x-1 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
-            <button
-              onClick={() => setTimeRange('24h')}
-              className={`px-3 py-1.5 rounded-lg font-medium transition ${
-                timeRange === '24h'
-                  ? 'bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              24 Hours
-            </button>
-            <button
-              onClick={() => setTimeRange('7d')}
-              className={`px-3 py-1.5 rounded-lg font-medium transition ${
-                timeRange === '7d'
-                  ? 'bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              7 Days
-            </button>
-            <button
-              onClick={() => setTimeRange('30d')}
-              className={`px-3 py-1.5 rounded-lg font-medium transition ${
-                timeRange === '30d'
-                  ? 'bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              30 Days
-            </button>
+        
+        <div className="flex items-center gap-3">
+          <div className="flex items-center bg-zinc-900 p-1 rounded-xl border border-zinc-800 text-xs font-medium">
+            {['24h', '7d', '30d'].map((range) => (
+              <button
+                key={range}
+                onClick={() => setTimeRange(range as any)}
+                className={`px-4 py-1.5 rounded-lg transition-colors ${timeRange === range ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-500 hover:text-zinc-300'}`}
+              >
+                {range}
+              </button>
+            ))}
           </div>
-
-          <button
-            onClick={() => alert('Exporting Analytics CSV Report...')}
-            className="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1.5"
-          >
-            <Download className="w-3.5 h-3.5" /> Export Data
+          <button className="px-4 py-2 rounded-xl text-xs font-semibold bg-zinc-100 hover:bg-white text-black transition-colors flex items-center gap-2">
+            <Download className="w-4 h-4" /> Export Report
           </button>
         </div>
       </div>
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <div className="glass-card p-4 rounded-xl border border-slate-800 flex items-center gap-3">
-          <div className="p-2.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-            <Zap className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="text-[10px] font-mono text-slate-400 uppercase">Demand Peak</div>
-            <div className="text-base font-bold text-cyan-300 font-mono">165 kW</div>
-            <div className="text-[10px] text-emerald-400">-25% vs Baseline</div>
-          </div>
-        </div>
-
-        <div className="glass-card p-4 rounded-xl border border-slate-800 flex items-center gap-3">
-          <div className="p-2.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
-            <Sun className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="text-[10px] font-mono text-slate-400 uppercase">Solar Output</div>
-            <div className="text-base font-bold text-amber-300 font-mono">85 kW</div>
-            <div className="text-[10px] text-slate-400">Cloud Dip Buffer</div>
-          </div>
-        </div>
-
-        <div className="glass-card p-4 rounded-xl border border-slate-800 flex items-center gap-3">
-          <div className="p-2.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            <BatteryCharging className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="text-[10px] font-mono text-slate-400 uppercase">BESS Reserve</div>
-            <div className="text-base font-bold text-emerald-400 font-mono">82% SOC</div>
-            <div className="text-[10px] text-emerald-400">Peak Discharging</div>
-          </div>
-        </div>
-
-        <div className="glass-card p-4 rounded-xl border border-slate-800 flex items-center gap-3">
-          <div className="p-2.5 rounded-lg bg-teal-500/10 text-teal-400 border border-teal-500/20">
-            <Leaf className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="text-[10px] font-mono text-slate-400 uppercase">Carbon Rate</div>
-            <div className="text-base font-bold text-teal-300 font-mono">184 g/kWh</div>
-            <div className="text-[10px] text-teal-400">Eco Mode Active</div>
-          </div>
-        </div>
-
-        <div className="glass-card p-4 rounded-xl border border-slate-800 flex items-center gap-3">
-          <div className="p-2.5 rounded-lg bg-violet-500/10 text-violet-400 border border-violet-500/20">
-            <DollarSign className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="text-[10px] font-mono text-slate-400 uppercase">Grid Tariff</div>
-            <div className="text-base font-bold text-violet-300 font-mono">$0.36 / kWh</div>
-            <div className="text-[10px] text-slate-400">Peak Window</div>
-          </div>
-        </div>
+        {[
+           { label: 'Demand Peak', value: '165 kW', sub: '-25% vs Without AI', icon: Zap, color: 'text-aiBlue' },
+           { label: 'Solar Output', value: '85 kW', sub: 'Cloud Dip Buffer', icon: Sun, color: 'text-amber-500' },
+           { label: 'BESS Reserve', value: '82% SOC', sub: 'Peak Discharging', icon: BatteryCharging, color: 'text-emerald-500' },
+           { label: 'Carbon Rate', value: '184 g/kWh', sub: 'Eco Mode Active', icon: Leaf, color: 'text-teal-500' },
+           { label: 'Grid Tariff', value: '$0.36 / kWh', sub: 'Peak Window Avoided', icon: DollarSign, color: 'text-violet-500' }
+        ].map((kpi, idx) => (
+           <div key={idx} className="glass-card p-4 rounded-xl border border-zinc-800 flex items-start gap-3 hover:border-zinc-700 transition-colors">
+              <div className="p-2 rounded-lg bg-zinc-900 border border-zinc-800">
+                 <kpi.icon className={`w-4 h-4 ${kpi.color}`} />
+              </div>
+              <div>
+                 <div className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">{kpi.label}</div>
+                 <div className="text-base font-semibold text-zinc-100 mt-1">{kpi.value}</div>
+                 <div className="text-[10px] text-emerald-500 font-medium mt-0.5">{kpi.sub}</div>
+              </div>
+           </div>
+        ))}
       </div>
 
-      {/* View Filter Bar */}
-      <div className="flex items-center space-x-1 bg-slate-900 p-1.5 rounded-xl border border-slate-800 w-fit">
-        <button
-          onClick={() => setActiveTab('all')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-            activeTab === 'all'
-              ? 'bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/30'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          All Charts (5)
-        </button>
-        <button
-          onClick={() => setActiveTab('demand')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-            activeTab === 'demand'
-              ? 'bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/30'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          ⚡ Demand
-        </button>
-        <button
-          onClick={() => setActiveTab('solar')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-            activeTab === 'solar'
-              ? 'bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          ☀️ Solar
-        </button>
-        <button
-          onClick={() => setActiveTab('battery')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-            activeTab === 'battery'
-              ? 'bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          🔋 Battery
-        </button>
-        <button
-          onClick={() => setActiveTab('carbon')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-            activeTab === 'carbon'
-              ? 'bg-teal-500/20 text-teal-300 font-bold border border-teal-500/30'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          🌿 Carbon
-        </button>
-        <button
-          onClick={() => setActiveTab('cost')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-            activeTab === 'cost'
-              ? 'bg-violet-500/20 text-violet-300 font-bold border border-violet-500/30'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          💵 Cost
-        </button>
+      <div className="flex flex-wrap items-center gap-2 bg-zinc-900/50 p-1.5 rounded-xl border border-zinc-800 w-fit">
+        {[
+           { id: 'all', label: 'All Charts' },
+           { id: 'demand', label: '⚡ Demand' },
+           { id: 'solar', label: '☀️ Solar' },
+           { id: 'battery', label: '🔋 Battery' },
+           { id: 'carbon', label: '🌿 Carbon' },
+           { id: 'cost', label: '💵 Cost' }
+        ].map(tab => (
+           <button
+             key={tab.id}
+             onClick={() => setActiveTab(tab.id as any)}
+             className={`px-4 py-2 rounded-lg text-xs font-semibold transition-colors ${activeTab === tab.id ? 'bg-zinc-800 text-zinc-100 border border-zinc-700' : 'text-zinc-500 hover:text-zinc-300 border border-transparent'}`}
+           >
+             {tab.label}
+           </button>
+        ))}
       </div>
 
-      {/* Grid of Interactive Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {(activeTab === 'all' || activeTab === 'demand') && <DemandChart />}
         {(activeTab === 'all' || activeTab === 'solar') && <SolarChart />}

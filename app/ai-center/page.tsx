@@ -5,7 +5,9 @@ import { useScenario } from '@/hooks/useScenario';
 import { SCENARIO_LIST } from '@/data/scenario';
 import { INITIAL_RECOMMENDATIONS } from '@/data/recommendation';
 import { AIThinking } from '@/components/ai/AIThinking';
+import { ExecutiveSummary } from '@/components/ai/ExecutiveSummary';
 import { RecommendationList } from '@/components/ai/RecommendationList';
+import { LiveCommandTerminal } from '@/components/ai/LiveCommandTerminal';
 import { ExplanationPanel } from '@/components/ai/ExplanationPanel';
 import { Timeline } from '@/components/ai/Timeline';
 import { ImpactSummary } from '@/components/ai/ImpactSummary';
@@ -144,6 +146,11 @@ export default function AICenterPage() {
         autoStart={true}
       />
 
+      {/* SECTION 1.5: Executive Summary */}
+      {aiThinkingCompleted && (
+        <ExecutiveSummary />
+      )}
+
       {/* SECTION 2: Recommendations List & Approval Controls */}
       <RecommendationList
         recommendations={recommendations}
@@ -151,6 +158,9 @@ export default function AICenterPage() {
         onApproveAll={handleApproveAll}
         onRejectAll={handleRejectAll}
       />
+
+      {/* SECTION 2.5: Live Command Terminal (Shows on approval) */}
+      <LiveCommandTerminal active={recommendations.some(r => r.approved)} />
 
       {/* SECTION 3: Natural Language AI Explanation Panel */}
       <ExplanationPanel recommendations={recommendations} />

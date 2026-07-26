@@ -1,15 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Recommendation } from '@/types/recommendation';
 import {
-  Zap,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  ShieldCheck,
-  TrendingDown,
-  ChevronRight,
+  Zap, CheckCircle, XCircle, AlertCircle, ShieldCheck, 
+  ChevronDown, ChevronUp, Clock, Info
 } from 'lucide-react';
 
 interface RecommendationCardProps {
@@ -21,134 +17,132 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
   recommendation,
   onToggleApprove,
 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const {
-    id,
-    title,
-    savingsKw,
-    reason,
-    priority,
-    confidence,
-    category,
-    approved,
-    estimatedCostSavings,
-    estimatedCarbonSavings,
-    targetAsset,
+    id, title, savingsKw, reason, priority, confidence,
+    category, approved, estimatedCostSavings, estimatedCarbonSavings, targetAsset,
   } = recommendation;
 
   const priorityStyles = {
-    high: 'bg-rose-500/10 text-rose-400 border-rose-500/30',
-    medium: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
-    low: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30',
+    high: 'text-rose-500 bg-rose-500/10 border-rose-500/20',
+    medium: 'text-amber-500 bg-amber-500/10 border-amber-500/20',
+    low: 'text-blue-500 bg-blue-500/10 border-blue-500/20',
   };
 
   return (
-    <div
-      className={`glass-card rounded-2xl p-5 border transition-all duration-300 relative overflow-hidden flex flex-col justify-between ${
+    <motion.div
+      layout
+      className={`glass-card rounded-2xl p-5 border transition-all duration-300 relative overflow-hidden flex flex-col ${
         approved
-          ? 'border-emerald-500/40 bg-slate-900/80 shadow-lg shadow-emerald-500/10'
-          : 'border-slate-800 bg-slate-950/60 opacity-75 hover:opacity-100'
+          ? 'border-emerald-500/30 bg-zinc-900/80 shadow-[0_0_20px_rgba(16,185,129,0.1)]'
+          : 'border-zinc-800 bg-zinc-950/60 hover:bg-zinc-900/80'
       }`}
     >
-      {/* Top Tag & Priority */}
-      <div>
-        <div className="flex items-center justify-between gap-2 mb-3">
-          <span className="text-[11px] font-mono font-medium text-slate-400 px-2.5 py-1 rounded-md bg-slate-800/80 border border-slate-700">
-            {category}
-          </span>
-          <div className="flex items-center gap-2">
-            <span
-              className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${priorityStyles[priority]}`}
-            >
-              {priority} Priority
-            </span>
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 px-2.5 py-1 rounded-md bg-zinc-900 border border-zinc-800">
+          {category}
+        </span>
+        <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${priorityStyles[priority]}`}>
+          {priority} Priority
+        </span>
+      </div>
+
+      <div className="flex items-start justify-between gap-4 mb-4">
+        <div>
+          <h3 className="text-base font-semibold text-zinc-100 mb-1">{title}</h3>
+          <p className="text-xs text-zinc-500">Target Asset: {targetAsset}</p>
+        </div>
+        <div className="inline-flex items-center gap-1.5 text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20 font-mono font-bold text-sm whitespace-nowrap">
+          <Zap className="w-4 h-4" /> {savingsKw} kW
+        </div>
+      </div>
+
+      <div className="grid grid-cols-4 gap-2 mb-4">
+        <div className="bg-zinc-900/50 p-2 rounded-lg border border-zinc-800/50 text-center">
+          <div className="text-[10px] text-zinc-500 uppercase">Confidence</div>
+          <div className="text-xs font-semibold text-aiBlue flex items-center justify-center gap-1 mt-0.5">
+            <ShieldCheck className="w-3 h-3" /> {confidence}%
           </div>
         </div>
-
-        {/* Title and Savings Banner */}
-        <div className="flex items-start justify-between gap-3 mb-3">
-          <div>
-            <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
-              {title}
-            </h3>
-            <p className="text-xs text-slate-400 font-mono mt-0.5">
-              Target: {targetAsset}
-            </p>
-          </div>
-          <div className="text-right">
-            <div className="inline-flex items-center gap-1 text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-xl border border-emerald-500/20 font-mono font-bold text-sm">
-              <Zap className="w-4 h-4 fill-emerald-400 text-emerald-400" />
-              {savingsKw} kW Saved
-            </div>
+        <div className="bg-zinc-900/50 p-2 rounded-lg border border-zinc-800/50 text-center">
+          <div className="text-[10px] text-zinc-500 uppercase">Saved</div>
+          <div className="text-xs font-semibold text-emerald-400 mt-0.5">
+            +${estimatedCostSavings.toFixed(2)}/hr
           </div>
         </div>
-
-        {/* Reason / AI Rationale */}
-        <div className="bg-slate-900/90 rounded-xl p-3.5 border border-slate-800/80 mb-4">
-          <p className="text-xs text-slate-300 leading-relaxed">
-            <span className="font-semibold text-cyan-400 mr-1">AI Reason:</span>
-            {reason}
-          </p>
+        <div className="bg-zinc-900/50 p-2 rounded-lg border border-zinc-800/50 text-center">
+          <div className="text-[10px] text-zinc-500 uppercase">Carbon</div>
+          <div className="text-xs font-semibold text-teal-400 mt-0.5">
+            -{estimatedCarbonSavings} kg
+          </div>
         </div>
-
-        {/* Key Metrics: Confidence, Financial & Carbon Savings */}
-        <div className="grid grid-cols-3 gap-2 mb-4">
-          <div className="bg-slate-950/50 p-2.5 rounded-xl border border-slate-800/60 text-center">
-            <div className="text-[10px] text-slate-400 uppercase font-mono">Confidence</div>
-            <div className="text-sm font-bold text-cyan-300 font-mono flex items-center justify-center gap-1 mt-0.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
-              {confidence}%
-            </div>
-          </div>
-
-          <div className="bg-slate-950/50 p-2.5 rounded-xl border border-slate-800/60 text-center">
-            <div className="text-[10px] text-slate-400 uppercase font-mono">Cost Saving</div>
-            <div className="text-sm font-bold text-emerald-400 font-mono mt-0.5">
-              +${estimatedCostSavings.toFixed(2)}/hr
-            </div>
-          </div>
-
-          <div className="bg-slate-950/50 p-2.5 rounded-xl border border-slate-800/60 text-center">
-            <div className="text-[10px] text-slate-400 uppercase font-mono">Carbon Saved</div>
-            <div className="text-sm font-bold text-teal-300 font-mono mt-0.5">
-              {estimatedCarbonSavings} kg/hr
-            </div>
+        <div className="bg-zinc-900/50 p-2 rounded-lg border border-zinc-800/50 text-center">
+          <div className="text-[10px] text-zinc-500 uppercase">Time</div>
+          <div className="text-xs font-semibold text-zinc-300 mt-0.5 flex items-center justify-center gap-1">
+             <Clock className="w-3 h-3" /> &lt; 1s
           </div>
         </div>
       </div>
 
-      {/* Action Footer: Approval Toggle Button */}
-      <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          {approved ? (
-            <span className="text-xs text-emerald-400 font-semibold flex items-center gap-1.5 bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20">
-              <CheckCircle className="w-4 h-4 text-emerald-400" /> Action Approved
-            </span>
-          ) : (
-            <span className="text-xs text-slate-400 font-semibold flex items-center gap-1.5 bg-slate-800/60 px-2.5 py-1 rounded-md border border-slate-700">
-              <AlertCircle className="w-4 h-4 text-amber-400" /> Pending Manager Review
-            </span>
-          )}
-        </div>
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="bg-zinc-900/80 rounded-xl p-4 border border-zinc-800 mb-4">
+              <div className="flex items-center gap-2 mb-2 text-xs font-semibold text-aiBlue uppercase tracking-wider">
+                <Info className="w-4 h-4" /> AI Reasoning
+              </div>
+              <p className="text-sm text-zinc-300 leading-relaxed">
+                {reason}
+                <br /><br />
+                <span className="text-zinc-500">Estimated Comfort Impact:</span> Minimal. Temperature expected to rise by 0.5°C over 2 hours, well within acceptable thresholds.
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-        <button
-          onClick={() => onToggleApprove(id)}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-md ${
-            approved
-              ? 'bg-slate-800 hover:bg-slate-700 text-rose-300 border border-rose-500/30'
-              : 'bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-slate-950 font-extrabold shadow-cyan-500/20'
-          }`}
+      <div className="pt-4 border-t border-zinc-800 flex items-center justify-between mt-auto">
+        <button 
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="text-xs text-zinc-400 hover:text-zinc-200 flex items-center gap-1 transition-colors"
         >
-          {approved ? (
-            <>
-              <XCircle className="w-4 h-4" /> Reject Action
-            </>
-          ) : (
-            <>
-              <CheckCircle className="w-4 h-4" /> Approve Action
-            </>
-          )}
+          {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          {isExpanded ? 'Hide Details' : 'Explain More'}
         </button>
+
+        <div className="flex gap-2">
+          {approved && (
+            <button
+              onClick={() => onToggleApprove(id)}
+              className="px-4 py-2 rounded-lg text-xs font-semibold bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 transition-colors"
+            >
+              Modify
+            </button>
+          )}
+          <button
+            onClick={() => onToggleApprove(id)}
+            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 ${
+              approved
+                ? 'bg-emerald-500/20 text-emerald-500 border border-emerald-500/30'
+                : 'bg-zinc-100 hover:bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.1)]'
+            }`}
+          >
+            {approved ? (
+              <>
+                <CheckCircle className="w-4 h-4" /> Approved
+              </>
+            ) : (
+              'Approve Action'
+            )}
+          </button>
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 };

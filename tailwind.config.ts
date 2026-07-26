@@ -16,29 +16,30 @@ const config: Config = {
           500: '#22c55e',
           600: '#16a34a',
         },
-        cyanGlow: '#00f2fe',
-        violetGlow: '#4facfe',
-        amberGlow: '#fbbf24',
-        darkBg: '#090d16',
-        cardBg: '#111827',
-        cardBorder: '#1f2937',
+        primary: '#f8f9fa',
+        secondary: '#a1a1aa',
+        darkBg: '#000000',
+        cardBg: '#09090b',
+        cardBorder: '#27272a',
+        aiBlue: '#3b82f6',
+        aiGreen: '#10b981',
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'glass-gradient': 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%)',
+        'glass-gradient': 'linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0) 100%)',
       },
       animation: {
-        'pulse-glow': 'pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'float': 'float 3s ease-in-out infinite',
+        'pulse-soft': 'pulseSoft 3s ease-in-out infinite',
       },
       keyframes: {
-        pulseGlow: {
-          '0%, 100%': { opacity: '1', filter: 'drop-shadow(0 0 15px rgba(0, 242, 254, 0.6))' },
-          '50%': { opacity: '0.6', filter: 'drop-shadow(0 0 5px rgba(0, 242, 254, 0.2))' },
-        },
         float: {
           '0%, 100%': { transform: 'translateY(0px)' },
-          '50%': { transform: 'translateY(-6px)' },
+          '50%': { transform: 'translateY(-4px)' },
+        },
+        pulseSoft: {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.7' },
         }
       }
     },
