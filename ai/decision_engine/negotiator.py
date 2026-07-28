@@ -1,56 +1,49 @@
-from ai.state import AgentState
-from typing import Any, List
-import json
+"""
+1. Objective: Resolve conflicts between agents using weighted logic.
+2. Folder location: ai/decision_engine/
+3. Responsibilities: Determine which agent wins a conflict based on priority and confidence.
+"""
+from typing import Dict, Any, List, Tuple
+from .priority_matrix import PriorityMatrix
+from .decision_schema import ConflictSchema
 
 class Negotiator:
-    """
-    Actively parses proposed actions to detect and format conflict resolutions.
-    """
-    
-    def __init__(self, max_cycles: int = 3):
-        self.max_cycles = max_cycles
-        
-    def detect_conflicts(self, state: AgentState) -> List[str]:
+    @staticmethod
+    def resolve(conflicts: List[ConflictSchema], agent_outputs: Dict[str, Any]) -> Tuple[List[str], List[str]]:
         """
-        Evaluate proposed actions to find logical conflicts.
-        Returns a list of conflict descriptions.
+        Resolves conflicts by determining winning and overridden agents.
+        Returns: (winning_agents, overridden_agents)
         """
-        proposals = state.get("proposed_actions", [])
-        conflicts = []
+        winners = set()
+        overridden = set()
         
-        # Simple mock conflict logic: if Thermal wants cooling but Grid says max draw is low
-        has_cooling = False
-        low_grid_draw = False
-        
-        for p in proposals:
-            if "ThermalAgent" in p and p["ThermalAgent"].get("hvac_mode") == "Cooling":
-                has_cooling = True
-            if "GridAgent" in p and p["GridAgent"].get("max_allowable_draw_kw", 1000) < 100:
-                low_grid_draw = True
+        for conflict in conflicts:
+            contenders = []
+            for agent in conflict.agents:
+                priority = PriorityMatrix.get_priority(agent)
+                # Assume default confidence of 0.8 for stubs if not provided
+                confidence = agent_outputs.get(agent, {}).get("confidence", 0.8)
+                contenders.append({"name": agent, "priority": priority, "confidence": confidence})
+            
+            # Sort by priority descending
+            contenders.sort(key=lambda x: x["priority"], reverse=True)
+            
+            if not contenders:
+                continue
                 
-        if has_cooling and low_grid_draw:
-            conflicts.append("ThermalAgent cooling request conflicts with GridAgent low draw constraint.")
+            primary = contenders[0]
+            winner = primary["name"]
             
-        return conflicts
-        
-    def resolve_conflicts(self, state: AgentState) -> dict[str, Any]:
-        """
-        Updates the negotiation history with conflict constraints.
-        """
-        history = state.get("negotiation_history", [])
-        if len(history) >= self.max_cycles:
-            # Force safety default
-            return {"consensus_reached": True, "active_agent": None, "forced_fallback": True}
-            
-        conflicts = self.detect_conflicts(state)
-        if not conflicts:
-            return {} # No state change needed
-            
-        history.append({
-            "event": "Conflict Detected",
-            "details": conflicts,
-            "instruction": "Please revise proposals to respect constraints."
-        })
-        
-        # Clear proposed actions to restart the proposal phase
-        return {"negotiation_history": history, "consensus_reached": False, "proposed_actions": []}
+            # Low confidence override logic (Step 4)
+            if primary["confidence"] < 0.5:
+                for secondary in contenders[1:]:
+                    if secondary["confidence"] > 0.9:
+                        winner = secondary["name"]
+                        break
+                        
+            winners.add(winner)
+            for contender in contenders:
+                if contender["name"] != winner:
+                    overridden.add(contender["name"])
+                    
+        return list(winners), list(overridden)

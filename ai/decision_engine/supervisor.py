@@ -1,59 +1,59 @@
-
+"""
+1. Objective: The LangGraph Supervisor node.
+2. Folder location: ai/decision_engine/
+3. Responsibilities: Ingest all agent outputs, validate, and execute ConsensusEngine.
+"""
+import time
+from typing import Dict, Any
 from ai.state import AgentState
-from typing import Any
-from pydantic import BaseModel, Field
-import json
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
-
-try:
-    from langchain_groq import ChatGroq
-    from langchain_core.prompts import ChatPromptTemplate
-except ImportError:
-    ChatGroq = None
-    ChatPromptTemplate = None
-
-class NextAgentRoute(BaseModel):
-    next_agent: str = Field(description="The exact name of the next agent to execute, or 'END' if consensus is reached.")
-    reasoning: str
+from .consensus import ConsensusEngine
+from .supervisor_logger import SupervisorLogger
 
 class DecisionEngineSupervisor:
-    """
-    LLM-driven supervisor node that dynamically routes execution based on twin state.
-    """
     def __init__(self):
         self.available_agents = [
             "OccupancyAgent", "ThermalAgent", "EnergyAgent", 
             "EquipmentAgent", "GridAgent", "SafetyAgent"
         ]
-        if ChatGroq and os.getenv("GROQ_API_KEY"):
-            self.llm = ChatGroq(temperature=0, model_name="llama-3.1-8b-instant")
-        else:
-            self.llm = None
-        
-        self.system_prompt = """
-        You are the Decision Engine Supervisor for a Digital Twin Multi-Agent System.
-        Your job is to read the current twin telemetry and decide which specialized agent needs to act next.
-        
-        Available Agents: {available_agents}
-        
-        If an agent has already proposed an action in the current cycle, do not call them again unless a conflict occurred.
-        If all necessary agents have acted and no conflicts exist, return 'END'.
-        """
 
     def process_state(self, state: AgentState) -> dict[str, Any]:
+        """
+        Routes to each agent sequentially. Once all have executed, builds consensus.
+        """
+        start_time = time.time()
+        
         proposed_actions = state.get("proposed_actions", [])
         
         # Determine which agents haven't run yet in this cycle
         executed = [list(action.keys())[0] for action in proposed_actions]
         remaining = [a for a in self.available_agents if a not in executed]
         
-        print(f"[DEBUG] Supervisor activated. Executed so far: {executed}. Remaining: {remaining}")
-        
-        # Deterministic routing - much faster, more reliable, and prevents tool hallucination
         if remaining:
+            # Continue sequential execution
             return {"active_agent": remaining[0], "consensus_reached": False}
+        
+        # Aggregate all agent outputs into a unified dictionary
+        agent_outputs = {}
+        for action in proposed_actions:
+            for agent_name, payload in action.items():
+                # Strip "Agent" suffix to match matrix (e.g. "ThermalAgent" -> "Thermal")
+                clean_name = agent_name.replace("Agent", "")
+                agent_outputs[clean_name] = payload
+                
+        # Validate that we have at least one agent output
+        if not agent_outputs:
+            return {"active_agent": None, "consensus_reached": True, "final_decision": None}
             
-        return {"active_agent": None, "consensus_reached": True}
+        # Execute Consensus Engine
+        decision = ConsensusEngine.evaluate(agent_outputs)
+        
+        latency_ms = (time.time() - start_time) * 1000
+        
+        # Log the cycle
+        SupervisorLogger.log_decision_cycle(agent_outputs, decision, latency_ms)
+        
+        return {
+            "active_agent": None, 
+            "consensus_reached": True,
+            "final_decision": decision.model_dump(mode="json")
+        }
