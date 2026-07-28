@@ -31,3 +31,10 @@ To execute a full simulation cycle with mock telemetry, passing the data through
 ```bash
 python -m simulation.runner
 ```
+
+
+
+# run the ai module 
+
+cd C:\Voltix
+python -m ai.main

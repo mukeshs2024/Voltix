@@ -8,14 +8,15 @@ from rich.table import Table
 from rich.panel import Panel
 from rich.layout import Layout
 from rich.text import Text
-from rich.align import Align
 from rich.console import Console
 from rich.progress import Progress, BarColumn, TextColumn
 import msvcrt
 import time
-import threading
+import os
 
 from .building_simulator import BuildingSimulator
+from ai.evaluation.report_generator import generate_report
+from ai.simulation.stress_tester import StressTester
 
 console = Console()
 
@@ -28,6 +29,7 @@ class EnterpriseDashboard:
         self.time_str = "--:--:--"
         self.scenario = "Initializing..."
         self.running = True
+        self.mode = "DASHBOARD"
         
     def update_data(self, telemetry, decision, time_str, scenario):
         self.telemetry = telemetry
@@ -41,7 +43,7 @@ class EnterpriseDashboard:
         layout.split(
             Layout(name="header", size=3),
             Layout(name="main"),
-            Layout(name="footer", size=3)
+            Layout(name="footer", size=5)
         )
         layout["main"].split_row(
             Layout(name="left", ratio=1),
@@ -109,30 +111,52 @@ class EnterpriseDashboard:
         layout["right"]["anomalies"].update(Panel(anomaly_text, title="Detected Anomalies"))
         
         # Footer
-        layout["footer"].update(Panel("Controls: [1] Morning Rush  [2] Conference  [3] Ghost Booking  [4] Fire Drill  [Q] Quit", style="white on black"))
+        footer_cmds = (
+            "[1] Morning Rush | [2] Conference | [3] Ghost Booking | [4] Fire Drill\n"
+            "[5] Empty | [6] Holiday | [8] Stress Test | [9] AI Eval | [Q] Quit"
+        )
+        layout["footer"].update(Panel(footer_cmds, title="Voltix AI Commands", style="white on black"))
         
         return layout
 
-    def keyboard_listener(self):
-        while self.running:
-            if msvcrt.kbhit():
-                key = msvcrt.getch().decode('utf-8').lower()
-                if key == '1': self.simulator.set_scenario("Morning Rush")
-                elif key == '2': self.simulator.set_scenario("Conference")
-                elif key == '3': self.simulator.set_scenario("Ghost Booking")
-                elif key == '4': self.simulator.set_scenario("Fire Drill")
-                elif key == 'q': self.running = False
-            time.sleep(0.1)
+    def _check_keys(self):
+        if msvcrt.kbhit():
+            key = msvcrt.getch().decode('utf-8').lower()
+            if key == '1': self.simulator.set_scenario("Morning Rush")
+            elif key == '2': self.simulator.set_scenario("Conference")
+            elif key == '3': self.simulator.set_scenario("Ghost Booking")
+            elif key == '4': self.simulator.set_scenario("Fire Drill")
+            elif key == '5': self.simulator.set_scenario("Empty Building")
+            elif key == '6': self.simulator.set_scenario("Holiday")
+            elif key == '8': self.mode = "STRESS_TEST"
+            elif key == '9': self.mode = "EVALUATION"
+            elif key == 'q': 
+                self.running = False
+                self.mode = "QUIT"
 
     def run(self):
         self.simulator.start()
-        k_thread = threading.Thread(target=self.keyboard_listener, daemon=True)
-        k_thread.start()
         
-        with Live(self.generate_layout(), refresh_per_second=10, screen=True) as live:
-            while self.running:
-                live.update(self.generate_layout())
-                time.sleep(0.1)
+        while self.running:
+            self.mode = "DASHBOARD"
+            
+            with Live(self.generate_layout(), refresh_per_second=10, screen=True) as live:
+                while self.running and self.mode == "DASHBOARD":
+                    self._check_keys()
+                    live.update(self.generate_layout())
+                    time.sleep(0.1)
+                    
+            if self.mode == "EVALUATION":
+                console.clear()
+                generate_report()
+                console.print("\n[bold yellow]Press ENTER to return to Dashboard...[/bold yellow]")
+                input()
+            elif self.mode == "STRESS_TEST":
+                console.clear()
+                tester = StressTester(iterations=100)
+                tester.run_stress_test()
+                console.print("\n[bold yellow]Press ENTER to return to Dashboard...[/bold yellow]")
+                input()
                 
         self.simulator.stop()
         
