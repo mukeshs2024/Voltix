@@ -1,8 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { forwardRef } from "react";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { motion, type HTMLMotionProps } from "framer-motion";
 import { fadeIn, staggerContainer } from "@/lib/animations";
 
 export interface PageContainerProps {
@@ -23,13 +23,19 @@ export function PageContainer({ children, className }: PageContainerProps) {
   );
 }
 
-export function SectionContainer({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <motion.section 
-      variants={fadeIn}
-      className={cn("space-y-4", className)}
-    >
-      {children}
-    </motion.section>
-  );
-}
+export const SectionContainer = forwardRef<HTMLElement, HTMLMotionProps<"section">>(
+  function SectionContainer({ children, className, ...props }, ref) {
+    return (
+      <motion.section
+        ref={ref}
+        {...props}
+        variants={fadeIn}
+        className={cn("space-y-4", className)}
+      >
+        {children}
+      </motion.section>
+    );
+  }
+);
+
+SectionContainer.displayName = "SectionContainer";

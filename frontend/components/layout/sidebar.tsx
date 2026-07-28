@@ -11,13 +11,14 @@ import {
   Building2,
   BarChart3,
   AlertTriangle,
-  GitFork,
+  BrainCircuit,
   Bot,
   FileText,
   Settings,
   ChevronLeft,
   ChevronRight,
   Zap,
+  FlaskConical,
 } from "lucide-react";
 
 const iconMap: Record<string, React.ElementType> = {
@@ -25,10 +26,11 @@ const iconMap: Record<string, React.ElementType> = {
   Building2,
   BarChart3,
   AlertTriangle,
-  GitFork,
+  BrainCircuit,
   Bot,
   FileText,
   Settings,
+  FlaskConical,
 };
 
 export function Sidebar() {

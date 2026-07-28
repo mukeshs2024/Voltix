@@ -3,8 +3,9 @@ export const NAV_ITEMS = [
   { name: "Buildings", href: "/buildings", iconName: "Building2" },
   { name: "Analytics", href: "/analytics", iconName: "BarChart3" },
   { name: "Alerts & Incidents", href: "/alerts", iconName: "AlertTriangle" },
-  { name: "Scenario Builder", href: "/scenario-builder", iconName: "GitFork" },
+  { name: "AI Control Center", href: "/ai-center", iconName: "BrainCircuit" },
   { name: "AI Copilot", href: "/copilot", iconName: "Bot" },
+  { name: "Simulation Studio", href: "/scenario-builder", iconName: "FlaskConical" },
   { name: "Reports", href: "/reports", iconName: "FileText" },
   { name: "Settings", href: "/settings", iconName: "Settings" },
 ] as const;

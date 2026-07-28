@@ -4,7 +4,7 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Building2, Activity, Zap, Users, ArrowRight } from "lucide-react";
+import { Building2, Activity, Zap, Users, AlertTriangle, ArrowRight } from "lucide-react";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Building } from "@/types";
 import { motion } from "framer-motion";
@@ -16,6 +16,8 @@ interface BuildingCardProps {
 }
 
 export function BuildingCard({ building, onClick, index }: BuildingCardProps) {
+  const energyKw = (building.areaSqFt * 0.012).toFixed(1);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
@@ -43,19 +45,19 @@ export function BuildingCard({ building, onClick, index }: BuildingCardProps) {
               <StatusBadge status={building.status} />
             </div>
 
-            <div className="grid grid-cols-3 gap-4 py-4 border-y border-[#E5E7EB] bg-[#FAFAFA] -mx-5 px-5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-4 border-y border-[#E5E7EB] bg-[#FAFAFA] -mx-5 px-5">
               <div className="flex flex-col">
                 <span className="text-[10px] uppercase font-bold text-[#6B7280] flex items-center gap-1 mb-1">
-                  <Activity className="w-3 h-3" /> Score
+                  <Activity className="w-3 h-3" /> AI Score
                 </span>
                 <span className="text-lg font-bold text-[#111827]">{building.energyScore}</span>
               </div>
               <div className="flex flex-col">
                 <span className="text-[10px] uppercase font-bold text-[#6B7280] flex items-center gap-1 mb-1">
-                  <Zap className="w-3 h-3" /> Load
+                  <Zap className="w-3 h-3" /> Energy
                 </span>
                 <span className="text-lg font-bold text-[#111827]">
-                  {(building.areaSqFt * 0.012).toFixed(1)} <span className="text-xs text-[#6B7280] font-medium">MW</span>
+                  {energyKw} <span className="text-xs text-[#6B7280] font-medium">kW</span>
                 </span>
               </div>
               <div className="flex flex-col">
@@ -64,9 +66,15 @@ export function BuildingCard({ building, onClick, index }: BuildingCardProps) {
                 </span>
                 <span className="text-lg font-bold text-[#111827]">{building.occupancyRate}%</span>
               </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] uppercase font-bold text-[#6B7280] flex items-center gap-1 mb-1">
+                  <AlertTriangle className="w-3 h-3" /> Alerts
+                </span>
+                <span className="text-lg font-bold text-[#111827]">{building.activeAlerts}</span>
+              </div>
             </div>
 
-            <div className="pt-4 flex items-center justify-between">
+            <div className="pt-4 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 {building.activeAlerts > 0 ? (
                   <Badge variant="danger" className="text-[10px]">
@@ -78,7 +86,15 @@ export function BuildingCard({ building, onClick, index }: BuildingCardProps) {
                   </Badge>
                 )}
               </div>
-              <Button variant="ghost" size="sm" className="h-8 gap-1 text-[#4B5563] hover:text-[#111827]">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 gap-1 text-[#4B5563] hover:text-[#111827]"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onClick(building);
+                }}
+              >
                 View Details <ArrowRight className="w-3.5 h-3.5" />
               </Button>
             </div>
