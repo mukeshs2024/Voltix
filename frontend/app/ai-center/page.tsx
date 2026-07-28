@@ -12,6 +12,7 @@ import {
   MOCK_CONSENSUS,
   MOCK_DECISION_TIMELINE,
   MOCK_AGENT_TELEMETRY,
+  MOCK_LIVE_ACTIVITY,
 } from "@/components/ai/mock-data";
 import {
   LineChart,
@@ -36,7 +37,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   Clock,
-  ChevronRight,
+  Flag,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -83,6 +84,27 @@ function HealthBar({ value, color }: { value: number; color: string }) {
         className="h-full rounded-full"
         style={{ backgroundColor: color }}
       />
+    </div>
+  );
+}
+
+function StatePill({ state }: { state: string }) {
+  const styles: Record<string, string> = {
+    Running: "bg-[#DBEAFE] text-[#1D4ED8] border-[#BFDBFE]",
+    Waiting: "bg-[#FEF3C7] text-[#B45309] border-[#FDE68A]",
+    Completed: "bg-[#DCFCE7] text-[#15803D] border-[#BBF7D0]",
+    Fallback: "bg-[#F3F4F6] text-[#4B5563] border-[#E5E7EB]",
+    Error: "bg-[#FEE2E2] text-[#B91C1C] border-[#FECACA]",
+    Learning: "bg-[#EDE9FE] text-[#6D28D9] border-[#DDD6FE]",
+  };
+
+  return <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full border text-[10px] font-semibold", styles[state] || styles.Fallback)}>{state}</span>;
+}
+
+function MiniBar({ value }: { value: number }) {
+  return (
+    <div className="h-2 rounded-full bg-[#F3F4F6] overflow-hidden">
+      <div className="h-full rounded-full bg-[#111827]" style={{ width: `${value}%` }} />
     </div>
   );
 }
@@ -158,6 +180,70 @@ export default function AICenterPage() {
         </Card>
       </SectionContainer>
 
+      {/* Decision Pipeline + Live Activity */}
+      <SectionContainer>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <Card className="p-5">
+            <CardHeader className="pb-3">
+              <CardTitle>Decision Pipeline</CardTitle>
+              <span className="text-xs text-[#6B7280]">Telemetry to consensus</span>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {MOCK_CONSENSUS.pipeline.map((step, index) => (
+                  <div key={step.label} className="flex items-center gap-3">
+                    <div className={cn(
+                      "w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border",
+                      step.status === "done" && "bg-[#DCFCE7] text-[#15803D] border-[#BBF7D0]",
+                      step.status === "active" && "bg-[#DBEAFE] text-[#1D4ED8] border-[#BFDBFE] animate-pulse",
+                      step.status === "pending" && "bg-[#F3F4F6] text-[#6B7280] border-[#E5E7EB]"
+                    )}>
+                      {index + 1}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="text-sm font-semibold text-[#111827]">{step.label}</div>
+                        <Badge variant={step.status === "done" ? "success" : step.status === "active" ? "warning" : "neutral"}>{step.status}</Badge>
+                      </div>
+                      <div className="text-[10px] text-[#6B7280]">{step.actor}</div>
+                    </div>
+                    {index < MOCK_CONSENSUS.pipeline.length - 1 && <div className="hidden sm:block w-10 h-px bg-[#E5E7EB]" />}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="p-5">
+            <CardHeader className="pb-3">
+              <CardTitle>Live Activity</CardTitle>
+              <span className="text-xs text-[#6B7280]">Most recent control-room events</span>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {MOCK_LIVE_ACTIVITY.map((event) => (
+                  <div key={`${event.time}-${event.message}`} className="flex gap-3 items-start">
+                    <div className={cn(
+                      "mt-1 w-2.5 h-2.5 rounded-full shrink-0",
+                      event.status === "success" && "bg-[#22C55E]",
+                      event.status === "warning" && "bg-[#F59E0B]",
+                      event.status === "info" && "bg-[#6366F1]"
+                    )} />
+                    <div className="flex-1 border border-[#E5E7EB] rounded-2xl p-3 bg-[#FAFAFA]">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="text-xs font-bold text-[#111827]">{event.message}</div>
+                        <span className="text-[10px] text-[#6B7280]">{event.time}</span>
+                      </div>
+                      <div className="text-[11px] text-[#6B7280] mt-1">{event.detail}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </SectionContainer>
+
       {/* Agent Cards Grid */}
       <SectionContainer>
         <div className="flex items-center justify-between mb-1">
@@ -191,10 +277,22 @@ export default function AICenterPage() {
                         </div>
                       </div>
                     </div>
-                    <Badge variant={agent.status === "warning" ? "warning" : agent.status === "error" ? "danger" : "success"}>
-                      {agent.health}%
-                    </Badge>
+                      <div className="flex flex-col items-end gap-2">
+                        <Badge variant={agent.status === "warning" ? "warning" : agent.status === "error" ? "danger" : "success"}>
+                          {agent.health}%
+                        </Badge>
+                        <StatePill state={agent.executionState} />
+                      </div>
                   </div>
+
+                    <div className="flex flex-wrap gap-1.5 mb-3">
+                      {agent.anomalyBadges.map((badge) => (
+                        <Badge key={badge} variant={badge === "Normal" ? "success" : badge === "Ghost Booking" ? "warning" : "neutral"} className="text-[10px]">
+                          <Flag className="w-3 h-3 mr-1" />
+                          {badge}
+                        </Badge>
+                      ))}
+                    </div>
 
                   {/* Health Bar */}
                   <div className="mb-3">
@@ -232,10 +330,47 @@ export default function AICenterPage() {
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
-                      className="bg-[#F0FDF4] border border-[#A7F3D0] rounded-xl p-3 mb-3"
+                      className="bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl p-3 mb-3 space-y-3"
                     >
-                      <div className="text-[10px] font-bold text-[#065F46] uppercase tracking-wider mb-1">Reasoning</div>
-                      <div className="text-xs text-[#047857] leading-snug">{agent.reason}</div>
+                      <div>
+                        <div className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider mb-2">Evidence</div>
+                        <div className="space-y-1.5">
+                          {agent.reasoningBlocks.evidence.map((item) => (
+                            <div key={item} className="text-xs text-[#111827] flex items-start gap-2">
+                              <span className="mt-1 w-1.5 h-1.5 rounded-full bg-[#6366F1] shrink-0" />
+                              <span>{item}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider mb-2">Reasoning</div>
+                        <div className="space-y-1.5">
+                          {agent.reasoningBlocks.reasoning.map((item) => (
+                            <div key={item} className="text-xs text-[#111827] flex items-start gap-2">
+                              <span className="mt-1 w-1.5 h-1.5 rounded-full bg-[#22C55E] shrink-0" />
+                              <span>{item}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="flex items-center justify-between text-[10px] font-bold text-[#6B7280] uppercase tracking-wider mb-2">
+                          <span>Confidence</span>
+                          <span>{agent.confidence}%</span>
+                        </div>
+                        <div className="space-y-2">
+                          {agent.reasoningBlocks.confidence.map((item) => (
+                            <div key={item.label}>
+                              <div className="flex items-center justify-between text-[11px] text-[#111827] mb-1">
+                                <span>{item.label}</span>
+                                <span className="font-semibold">{item.value}%</span>
+                              </div>
+                              <MiniBar value={item.value} />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </motion.div>
                   )}
 

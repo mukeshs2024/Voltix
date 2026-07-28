@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FileText, Download, Calendar, Zap, Leaf, DollarSign } from "lucide-react";
 import { motion } from "framer-motion";
+import { downloadReport } from "@/components/reports/report-export";
 
 export type ReportCategory = "Energy" | "Carbon" | "Savings" | "Monthly";
 
@@ -78,7 +79,7 @@ export function ReportCard({ report, onPreview, index }: ReportCardProps) {
               <Button variant="ghost" size="sm" onClick={() => onPreview(report)} className="text-[#6B7280] hover:text-[#111827]">
                 Preview
               </Button>
-              <Button variant="outline" size="sm" className="w-8 h-8 p-0">
+              <Button variant="outline" size="sm" className="w-8 h-8 p-0" onClick={() => downloadReport(report, "pdf")}>
                 <Download className="w-4 h-4" />
               </Button>
             </div>

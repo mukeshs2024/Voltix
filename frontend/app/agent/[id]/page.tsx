@@ -10,9 +10,9 @@ import { Button } from "@/components/ui/button";
 import {
   MOCK_AGENTS,
   MOCK_AGENT_TELEMETRY,
-  MOCK_AGENT_LOGS,
   MOCK_TRIGGERED_RULES,
   MOCK_RECOMMENDATIONS,
+  MOCK_LIVE_ACTIVITY,
 } from "@/components/ai/mock-data";
 import {
   LineChart,
@@ -22,8 +22,6 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
-  AreaChart,
-  Area,
 } from "recharts";
 import {
   ArrowLeft,
@@ -32,14 +30,14 @@ import {
   Brain,
   Clock,
   CheckCircle2,
-  AlertTriangle,
   ChevronRight,
   Lightbulb,
-  BookOpen,
   BarChart2,
   Terminal,
   GitBranch,
   TrendingUp,
+  FileJson,
+  Sparkles,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -53,6 +51,7 @@ const TABS = [
   { id: "logs", label: "Execution Logs", icon: Terminal },
   { id: "rules", label: "Triggered Rules", icon: GitBranch },
   { id: "recommendations", label: "Recommendations", icon: Lightbulb },
+  { id: "developer", label: "Developer Mode", icon: FileJson },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -67,19 +66,13 @@ const PREDICTION_DATA = [
   { time: "+60m", predicted: 89, actual: null },
 ];
 
-const CONFIDENCE_HISTORY = [
-  { time: "14:00", confidence: 88 },
-  { time: "14:10", confidence: 90 },
-  { time: "14:20", confidence: 87 },
-  { time: "14:30", confidence: 91 },
-  { time: "14:40", confidence: 93 },
-  { time: "14:50", confidence: 92 },
-  { time: "15:00", confidence: 94 },
-  { time: "15:10", confidence: 94 },
-  { time: "15:20", confidence: 92 },
-  { time: "15:30", confidence: 94 },
-  { time: "15:40", confidence: 94 },
-];
+function Bar({ value }: { value: number }) {
+  return (
+    <div className="h-2 rounded-full bg-[#F3F4F6] overflow-hidden">
+      <div className="h-full rounded-full bg-[#111827]" style={{ width: `${value}%` }} />
+    </div>
+  );
+}
 
 export default function AgentDetailPage() {
   const params = useParams();
@@ -92,6 +85,15 @@ export default function AgentDetailPage() {
     time: row.time,
     value: row[agent.type as keyof typeof row] as number,
   }));
+
+  const telemetryRows: Array<[string, React.ReactNode]> = [
+    ["Current Occupancy", String(agent.outputJson.current_occupancy ?? 12)],
+    ["Trend", "Stable"],
+    ["Prediction", "15m: 13, 30m: 14, 60m: 15"],
+    ["Activity Level", "Low"],
+    ["Utilization", "Underutilized"],
+    ["Business Rules Triggered", "Ghost booking guard, low utilization"],
+  ];
 
   return (
     <PageContainer>
@@ -122,6 +124,8 @@ export default function AgentDetailPage() {
                 <span className="text-sm text-[#6B7280] capitalize">{agent.status}</span>
                 <span className="text-[#E5E7EB]">·</span>
                 <span className="text-sm text-[#6B7280]">Uptime {agent.uptime}</span>
+                <span className="text-[#E5E7EB]">·</span>
+                <span className="text-sm text-[#6B7280]">Scenario {agent.scenario}</span>
               </div>
             </div>
           </div>
@@ -138,7 +142,7 @@ export default function AgentDetailPage() {
             { label: "Health", value: `${agent.health}%`, icon: Activity, color: "#22C55E" },
             { label: "Latency", value: `${agent.latency}ms`, icon: Clock, color: "#F59E0B" },
             { label: "Confidence", value: `${agent.confidence}%`, icon: CheckCircle2, color: "#6366F1" },
-            { label: "Decisions Today", value: agent.decisionsToday, icon: Brain, color: "#3B82F6" },
+            { label: "Evaluation", value: `${agent.evaluationScore}%`, icon: Brain, color: "#3B82F6" },
           ].map((m) => {
             const Icon = m.icon;
             return (
@@ -190,35 +194,53 @@ export default function AgentDetailPage() {
                   <CardTitle>Last Decision</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="bg-[#FAFAFA] border border-[#E5E7EB] rounded-xl p-4 mb-3">
-                    <div className="text-sm font-semibold text-[#111827]">{agent.lastDecision}</div>
-                  </div>
-                  <div className="bg-[#F0FDF4] border border-[#A7F3D0] rounded-xl p-4">
-                    <div className="text-[10px] font-bold text-[#065F46] uppercase tracking-wider mb-1">Reasoning</div>
-                    <div className="text-xs text-[#047857] leading-relaxed">{agent.reason}</div>
+                  <div className="space-y-3">
+                    <div className="bg-[#FAFAFA] border border-[#E5E7EB] rounded-xl p-4">
+                      <div className="text-sm font-semibold text-[#111827]">{agent.lastDecision}</div>
+                    </div>
+                    <div className="bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl p-4 space-y-3">
+                      <div>
+                        <div className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider mb-2">Evidence</div>
+                        <div className="space-y-1.5">
+                          {agent.reasoningBlocks.evidence.map((item) => (
+                            <div key={item} className="text-xs text-[#111827] flex items-start gap-2">
+                              <span className="mt-1 w-1.5 h-1.5 rounded-full bg-[#6366F1] shrink-0" />
+                              <span>{item}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider mb-2">Reasoning</div>
+                        <div className="space-y-1.5">
+                          {agent.reasoningBlocks.reasoning.map((item) => (
+                            <div key={item} className="text-xs text-[#111827] flex items-start gap-2">
+                              <Sparkles className="w-3 h-3 mt-0.5 text-[#22C55E] shrink-0" />
+                              <span>{item}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
               <Card className="p-5">
                 <CardHeader className="pb-3">
-                  <CardTitle>Agent Health History</CardTitle>
+                  <CardTitle>Confidence Breakdown</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={180}>
-                    <AreaChart data={agentTelemetry} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="healthGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#22C55E" stopOpacity={0.15} />
-                          <stop offset="95%" stopColor="#22C55E" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
-                      <XAxis dataKey="time" tick={{ fontSize: 10, fill: "#9CA3AF" }} />
-                      <YAxis domain={[60, 100]} tick={{ fontSize: 10, fill: "#9CA3AF" }} />
-                      <Tooltip contentStyle={{ fontSize: 11, borderRadius: 12, border: "1px solid #E5E7EB" }} />
-                      <Area type="monotone" dataKey="value" stroke="#22C55E" strokeWidth={2} fill="url(#healthGrad)" />
-                    </AreaChart>
-                  </ResponsiveContainer>
+                  <div className="space-y-3">
+                    {agent.reasoningBlocks.confidence.map((metric) => (
+                      <div key={metric.label}>
+                        <div className="flex items-center justify-between text-[11px] text-[#111827] mb-1">
+                          <span>{metric.label}</span>
+                          <span className="font-semibold">{metric.value}%</span>
+                        </div>
+                        <Bar value={metric.value} />
+                      </div>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -226,23 +248,42 @@ export default function AgentDetailPage() {
 
           {/* TELEMETRY */}
           {activeTab === "telemetry" && (
-            <Card className="p-5 mt-4">
-              <CardHeader className="pb-3">
-                <CardTitle>Agent Telemetry — Confidence Score</CardTitle>
-                <span className="text-xs text-[#6B7280]">Last 90 minutes</span>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={280}>
-                  <LineChart data={agentTelemetry} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
-                    <XAxis dataKey="time" tick={{ fontSize: 10, fill: "#9CA3AF" }} />
-                    <YAxis domain={[60, 100]} tick={{ fontSize: 10, fill: "#9CA3AF" }} />
-                    <Tooltip contentStyle={{ fontSize: 11, borderRadius: 12, border: "1px solid #E5E7EB" }} />
-                    <Line type="monotone" dataKey="value" stroke="#6366F1" strokeWidth={2.5} dot={{ r: 3, fill: "#6366F1" }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+              <Card className="p-5">
+                <CardHeader className="pb-3">
+                  <CardTitle>Input Telemetry</CardTitle>
+                  <span className="text-xs text-[#6B7280]">Telemetry snapshot for operator review</span>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {telemetryRows.map(([label, value]) => (
+                      <div key={label} className="flex items-center justify-between gap-3 rounded-xl border border-[#E5E7EB] bg-[#FAFAFA] px-3 py-2">
+                        <span className="text-xs text-[#6B7280]">{label}</span>
+                        <span className="text-xs font-semibold text-[#111827] text-right">{String(value)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="p-5">
+                <CardHeader className="pb-3">
+                  <CardTitle>Occupancy History</CardTitle>
+                  <span className="text-xs text-[#6B7280]">Last 90 minutes</span>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={280}>
+                    <LineChart data={agentTelemetry} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
+                      <XAxis dataKey="time" tick={{ fontSize: 10, fill: "#9CA3AF" }} />
+                      <YAxis domain={[60, 100]} tick={{ fontSize: 10, fill: "#9CA3AF" }} />
+                      <Tooltip contentStyle={{ fontSize: 11, borderRadius: 12, border: "1px solid #E5E7EB" }} />
+                      <Line type="monotone" dataKey="value" stroke="#6366F1" strokeWidth={2.5} dot={{ r: 3, fill: "#6366F1" }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
           )}
 
           {/* REASONING */}
@@ -255,12 +296,11 @@ export default function AgentDetailPage() {
                 <CardContent>
                   <div className="space-y-3">
                     {[
-                      { step: 1, label: "Sensor Data Ingestion", detail: "12 sensors aggregated — occupancy, CO2, temperature, motion" },
-                      { step: 2, label: "Pattern Recognition", detail: "Historical match found: similar low-occupancy event 3 days ago at 15:30" },
-                      { step: 3, label: "Model Inference", detail: "Occupancy model output: Zone 3 = 12% (threshold: 30%)" },
-                      { step: 4, label: "Rule Evaluation", detail: "Rule OCC_LOW_ZONE_HVAC_REDUCE triggered — conditions met" },
-                      { step: 5, label: "Supervisor Consensus", detail: "5/6 agents agreed — consensus achieved in 340ms" },
-                      { step: 6, label: "Decision Dispatch", detail: "HVAC Zone 3 reduction command sent — acknowledged by BMS" },
+                      { step: 1, label: "Telemetry", detail: "Occupancy 12%, motion none, door events 0" },
+                      { step: 2, label: "Occupancy Agent", detail: "Ghost booking guard triggered after 45 minutes of inactivity" },
+                      { step: 3, label: "Supervisor", detail: "Recommendation accepted with 94% confidence" },
+                      { step: 4, label: "Consensus", detail: "5/6 agents aligned on the same action" },
+                      { step: 5, label: "Recommendation", detail: "HVAC reduction recommended for low utilization" },
                     ].map((item) => (
                       <div key={item.step} className="flex gap-4 items-start">
                         <div className="w-6 h-6 rounded-full bg-[#111827] text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
@@ -282,8 +322,8 @@ export default function AgentDetailPage() {
           {activeTab === "predictions" && (
             <Card className="p-5 mt-4">
               <CardHeader className="pb-3">
-                <CardTitle>60-Minute Confidence Forecast</CardTitle>
-                <span className="text-xs text-[#6B7280]">Predicted vs actual confidence score</span>
+                <CardTitle>Prediction Horizon</CardTitle>
+                <span className="text-xs text-[#6B7280]">Occupancy forecast for the next 60 minutes</span>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={260}>
@@ -308,35 +348,34 @@ export default function AgentDetailPage() {
           {activeTab === "confidence" && (
             <Card className="p-5 mt-4">
               <CardHeader className="pb-3">
-                <CardTitle>Confidence Score History</CardTitle>
+                <CardTitle>Confidence Breakdown</CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={260}>
-                  <AreaChart data={CONFIDENCE_HISTORY} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="confGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#6366F1" stopOpacity={0.15} />
-                        <stop offset="95%" stopColor="#6366F1" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
-                    <XAxis dataKey="time" tick={{ fontSize: 10, fill: "#9CA3AF" }} />
-                    <YAxis domain={[70, 100]} tick={{ fontSize: 10, fill: "#9CA3AF" }} />
-                    <Tooltip contentStyle={{ fontSize: 11, borderRadius: 12, border: "1px solid #E5E7EB" }} />
-                    <Area type="monotone" dataKey="confidence" stroke="#6366F1" strokeWidth={2.5} fill="url(#confGrad)" />
-                  </AreaChart>
-                </ResponsiveContainer>
-                <div className="grid grid-cols-3 gap-3 mt-4">
-                  {[
-                    { label: "Current", value: `${agent.confidence}%` },
-                    { label: "Average", value: "91%" },
-                    { label: "Min (90 min)", value: "87%" },
-                  ].map((s) => (
-                    <div key={s.label} className="bg-[#FAFAFA] border border-[#E5E7EB] rounded-xl p-3 text-center">
-                      <div className="text-lg font-bold text-[#111827]">{s.value}</div>
-                      <div className="text-[10px] text-[#6B7280] uppercase tracking-wider mt-0.5">{s.label}</div>
-                    </div>
-                  ))}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    {agent.reasoningBlocks.confidence.map((metric) => (
+                      <div key={metric.label}>
+                        <div className="flex items-center justify-between text-[11px] text-[#111827] mb-1">
+                          <span>{metric.label}</span>
+                          <span className="font-semibold">{metric.value}%</span>
+                        </div>
+                        <Bar value={metric.value} />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { label: "Current", value: `${agent.confidence}%` },
+                      { label: "Average", value: "91%" },
+                      { label: "Min (90 min)", value: "87%" },
+                      { label: "Evaluation", value: `${agent.evaluationScore}%` },
+                    ].map((s) => (
+                      <div key={s.label} className="bg-[#FAFAFA] border border-[#E5E7EB] rounded-xl p-3 text-center">
+                        <div className="text-lg font-bold text-[#111827]">{s.value}</div>
+                        <div className="text-[10px] text-[#6B7280] uppercase tracking-wider mt-0.5">{s.label}</div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -350,14 +389,14 @@ export default function AgentDetailPage() {
               </CardHeader>
               <CardContent>
                 <div className="bg-[#111827] rounded-xl p-4 font-mono text-xs space-y-1.5 max-h-[360px] overflow-y-auto">
-                  {MOCK_AGENT_LOGS.map((log, i) => (
+                  {MOCK_LIVE_ACTIVITY.map((log, i) => (
                     <div key={i} className="flex gap-3">
-                      <span className="text-[#6B7280] shrink-0">{log.ts}</span>
+                      <span className="text-[#6B7280] shrink-0">{log.time}</span>
                       <span className={cn(
                         "shrink-0 font-bold",
-                        log.level === "INFO" ? "text-[#22C55E]" : "text-[#F59E0B]"
-                      )}>[{log.level}]</span>
-                      <span className="text-[#E5E7EB]">{log.msg}</span>
+                        log.status === "success" ? "text-[#22C55E]" : log.status === "warning" ? "text-[#F59E0B]" : "text-[#93C5FD]"
+                      )}>[{log.status.toUpperCase()}]</span>
+                      <span className="text-[#E5E7EB]">{log.message}</span>
                     </div>
                   ))}
                 </div>
@@ -416,6 +455,66 @@ export default function AgentDetailPage() {
                 </Card>
               ))}
             </div>
+          )}
+
+          {activeTab === "developer" && (
+            <Card className="p-5 mt-4">
+              <CardHeader className="pb-3">
+                <CardTitle>Developer Mode</CardTitle>
+                <span className="text-xs text-[#6B7280]">Raw output JSON for debugging and evaluation</span>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <div className="bg-[#FAFAFA] border border-[#E5E7EB] rounded-xl p-4">
+                      <div className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider mb-2">Output JSON</div>
+                      <pre className="text-xs text-[#111827] overflow-auto whitespace-pre-wrap">{JSON.stringify(agent.outputJson, null, 2)}</pre>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        { label: "Execution Time", value: `${agent.latency}ms` },
+                        { label: "Evaluation Score", value: `${agent.evaluationScore}%` },
+                        { label: "History", value: `${agent.decisionsToday} decisions today` },
+                        { label: "Scenario", value: agent.scenario },
+                      ].map((item) => (
+                        <div key={item.label} className="rounded-xl border border-[#E5E7EB] bg-[#FAFAFA] p-3">
+                          <div className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider mb-1">{item.label}</div>
+                          <div className="text-sm font-semibold text-[#111827]">{item.value}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl p-4">
+                      <div className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider mb-2">Triggered Rules</div>
+                      <div className="space-y-2 text-xs text-[#111827]">
+                        {agent.anomalyBadges.map((badge) => (
+                          <div key={badge} className="flex items-center justify-between rounded-lg bg-white border border-[#E5E7EB] px-3 py-2">
+                            <span>{badge}</span>
+                            <Badge variant={badge === "Normal" ? "success" : badge === "Ghost Booking" ? "warning" : "neutral"}>{badge}</Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl p-4">
+                      <div className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider mb-2">Live Activity</div>
+                      <div className="space-y-2">
+                        {MOCK_LIVE_ACTIVITY.map((item) => (
+                          <div key={item.time} className="rounded-lg border border-[#E5E7EB] bg-white px-3 py-2">
+                            <div className="flex items-center justify-between gap-3">
+                              <span className="text-xs font-semibold text-[#111827]">{item.message}</span>
+                              <span className="text-[10px] text-[#6B7280]">{item.time}</span>
+                            </div>
+                            <div className="text-[11px] text-[#6B7280] mt-1">{item.detail}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           )}
         </motion.div>
       </SectionContainer>

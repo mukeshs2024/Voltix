@@ -5,6 +5,7 @@ import { ReportDetail } from "@/components/reports/report-card";
 import { FileText, Download, Share2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Drawer } from "@/components/shared/drawer";
+import { downloadReport } from "@/components/reports/report-export";
 
 interface ReportPreviewDrawerProps {
   report: ReportDetail | null;
@@ -29,13 +30,21 @@ export function ReportPreviewDrawer({ report, isOpen, onClose }: ReportPreviewDr
   );
 
   const footer = (
-    <div className="flex justify-end gap-3 w-full">
+    <div className="flex flex-col sm:flex-row justify-end gap-3 w-full">
       <Button variant="outline" className="gap-2">
         <Share2 className="w-4 h-4" /> Share
       </Button>
-      <Button variant="primary" className="bg-[#111827] hover:bg-[#374151] text-white border-none gap-2">
-        <Download className="w-4 h-4" /> Download PDF
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        <Button variant="outline" className="gap-2" onClick={() => downloadReport(report, "csv")}>
+          <Download className="w-4 h-4" /> CSV
+        </Button>
+        <Button variant="outline" className="gap-2" onClick={() => downloadReport(report, "xlsx")}>
+          <Download className="w-4 h-4" /> XLSX
+        </Button>
+        <Button variant="primary" className="bg-[#111827] hover:bg-[#374151] text-white border-none gap-2" onClick={() => downloadReport(report, "pdf")}>
+          <Download className="w-4 h-4" /> PDF
+        </Button>
+      </div>
     </div>
   );
 
