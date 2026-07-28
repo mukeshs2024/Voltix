@@ -16,7 +16,7 @@ import os
 
 from .building_simulator import BuildingSimulator
 from ai.evaluation.report_generator import generate_report
-from ai.simulation.stress_tester import StressTester
+from ai.simulation.stress_tester import run_stress_test
 
 console = Console()
 
@@ -153,8 +153,7 @@ class EnterpriseDashboard:
                 input()
             elif self.mode == "STRESS_TEST":
                 console.clear()
-                tester = StressTester(iterations=100)
-                tester.run_stress_test()
+                run_stress_test()
                 console.print("\n[bold yellow]Press ENTER to return to Dashboard...[/bold yellow]")
                 input()
                 
