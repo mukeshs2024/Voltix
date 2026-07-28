@@ -8,6 +8,7 @@ from backend.app.core.database import get_db
 from backend.app.core.redis import get_redis
 from backend.app.core.security import decode_token
 from backend.app.infrastructure.db.models.user import User
+from backend.app.infrastructure.repositories.simulation import SimulationRepository
 from backend.app.infrastructure.repositories.user import UserRepository
 
 security = HTTPBearer(auto_error=False)
@@ -45,6 +46,13 @@ async def get_user_repository(db: DatabaseDep) -> UserRepository:
 
 
 UserRepositoryDep = Annotated[UserRepository, Depends(get_user_repository)]
+
+
+async def get_simulation_repository(db: DatabaseDep) -> SimulationRepository:
+    return SimulationRepository(session=db)
+
+
+SimulationRepositoryDep = Annotated[SimulationRepository, Depends(get_simulation_repository)]
 
 
 async def get_current_user(

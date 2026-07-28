@@ -37,6 +37,10 @@ class Settings(BaseSettings):
     SUPABASE_SERVICE_ROLE_KEY: str = ""
     SUPABASE_JWT_SECRET: str = ""
 
+    # AI Multi-Agent Service Integration
+    AI_SERVICE_URL: str = "http://localhost:8001"
+    AI_TIMEOUT_SECONDS: float = 30.0
+
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:8000"]
 

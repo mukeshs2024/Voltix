@@ -1,3 +1,14 @@
+from backend.app.domain.schemas.simulation import (
+    AgentReport,
+    DecisionPayload,
+    EnergyPayload,
+    EquipmentPayload,
+    GridPayload,
+    OccupancyPayload,
+    SimulationRequest,
+    SimulationResponse,
+    ThermalPayload,
+)
 from backend.app.domain.schemas.user import (
     SupabaseTokenAuth,
     SupabaseUserCreate,
@@ -18,4 +29,13 @@ __all__ = [
     "Token",
     "TokenData",
     "SupabaseTokenAuth",
+    "SimulationRequest",
+    "SimulationResponse",
+    "OccupancyPayload",
+    "ThermalPayload",
+    "EnergyPayload",
+    "EquipmentPayload",
+    "GridPayload",
+    "DecisionPayload",
+    "AgentReport",
 ]
