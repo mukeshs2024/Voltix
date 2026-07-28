@@ -1,0 +1,7 @@
+langgraph==0.0.26
+langchain-core>=0.1.40
+langchain-groq>=0.1.0
+pydantic==2.6.3
+python-dotenv==1.0.1
+pytest==8.1.1
+pytest-asyncio==0.23.6
