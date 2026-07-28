@@ -3,7 +3,9 @@
 2. Responsibilities: Maintain consistent types for Activity Levels, Utilization, Trends, and Anomalies.
 3. Folder location: ai/agents/occupancy/
 """
+
 from enum import Enum
+
 
 class ActivityLevel(str, Enum):
     EMPTY = "EMPTY"
@@ -12,22 +14,26 @@ class ActivityLevel(str, Enum):
     HIGH = "HIGH"
     PEAK = "PEAK"
 
+
 class UtilizationStatus(str, Enum):
     UNDERUTILIZED = "UNDERUTILIZED"
     OPTIMAL = "OPTIMAL"
     OVERUTILIZED = "OVERUTILIZED"
     CRITICAL = "CRITICAL"
 
+
 class TrendDirection(str, Enum):
     INCREASING = "INCREASING"
     STABLE = "STABLE"
     DECREASING = "DECREASING"
+
 
 class AnomalySeverity(str, Enum):
     LOW = "LOW"
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
     CRITICAL = "CRITICAL"
+
 
 class SensorType(str, Enum):
     PIR = "PIR"

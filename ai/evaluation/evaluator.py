@@ -9,13 +9,13 @@ from .dataset import EVALUATION_DATASET
 from .metrics import MetricsEvaluator
 from ai.agents.occupancy.occupancy_agent import OccupancyAgent
 from ai.agents.safety.safety_agent import SafetyAgent
-from ai.decision_engine.supervisor import DecisionEngineSupervisor
+from ai.decision_engine.orchestrator import Orchestrator
 
 class EvaluationEngine:
     def __init__(self):
         self.occupancy_agent = OccupancyAgent()
         self.safety_agent = SafetyAgent()
-        self.supervisor = DecisionEngineSupervisor()
+        self.orchestrator = Orchestrator()
         
     def run_evaluations(self):
         results = []
@@ -41,8 +41,8 @@ class EvaluationEngine:
                 
             agg_state = {"proposed_actions": proposed_actions}
             
-            # 4. Supervisor
-            final_state = self.supervisor.process_state(agg_state)
+            # 4. Orchestrator
+            decision_pkg = self.orchestrator.process(agg_state)
             
             latency = (time.time() - start_time) * 1000
             
@@ -57,12 +57,7 @@ class EvaluationEngine:
                 predicted_anomaly = metrics.get("anomalies_detected", False)
                 predicted_conf = metrics.get("confidence_score", 0.0)
             
-            decision_dict = {}
-            if final_state.get("final_decision"):
-                try:
-                    decision_dict = json.loads(final_state["final_decision"])
-                except Exception:
-                    pass
+            decision_dict = decision_pkg.model_dump()
                     
             winning_agents = decision_dict.get("winning_agents", [])
             reasoning = decision_dict.get("reasoning", "")

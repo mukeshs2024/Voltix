@@ -16,10 +16,10 @@ class ConflictDetector:
         conflicts = []
         
         # Extract specific signals
-        thermal = agent_outputs.get("Thermal", {})
-        energy = agent_outputs.get("Energy", {})
-        occupancy = agent_outputs.get("Occupancy", {})
-        grid = agent_outputs.get("Grid", {})
+        thermal = agent_outputs.get("ThermalAgent", {})
+        energy = agent_outputs.get("EnergyAgent", {})
+        occupancy = agent_outputs.get("OccupancyAgent", {})
+        grid = agent_outputs.get("GridAgent", {})
         
         thermal_mode = thermal.get("hvac_mode", "AUTO")
         energy_shedding = energy.get("shedding_recommended", False)

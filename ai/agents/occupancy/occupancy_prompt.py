@@ -1,6 +1,6 @@
 """
 Phase 4: Prompt Engineering for the Occupancy Agent.
-This module contains the enterprise-grade system and developer prompts designed for 
+This module contains the enterprise-grade system and developer prompts designed for
 strict instruction following, hallucination prevention, and deterministic JSON output.
 """
 

@@ -22,7 +22,7 @@ def boot_sequence():
     
     for step in steps:
         time.sleep(0.1) # Simulate loading
-        console.print(f"[bold green]✓[/bold green] {step}")
+        console.print(f"[bold green][OK][/bold green] {step}")
         
     time.sleep(0.3)
     console.print("\n[bold yellow]System Ready[/bold yellow]\n")

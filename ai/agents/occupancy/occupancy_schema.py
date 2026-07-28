@@ -3,17 +3,25 @@
 2. Responsibilities: Enforce Pydantic validation across the entire agent lifecycle.
 3. Folder location: ai/agents/occupancy/
 """
+
 from datetime import datetime
 from typing import List, Optional, Literal
-from pydantic import BaseModel, Field, ConfigDict
-from .occupancy_constants import ActivityLevel, UtilizationStatus, TrendDirection, AnomalySeverity, SensorType
+from pydantic import BaseModel, Field, ConfigDict, model_validator
+from .occupancy_constants import (
+    ActivityLevel,
+    UtilizationStatus,
+    TrendDirection,
+    AnomalySeverity,
+)
+
 
 class SensorData(BaseModel):
     sensor_id: str
-    sensor_type: Literal['PIR', 'TOF', 'CO2', 'ACS', 'WIFI', 'ALARM']
+    sensor_type: Literal["PIR", "TOF", "CO2", "ACS", "WIFI", "ALARM"]
     value: float
     timestamp: datetime
     is_active: bool = True
+
 
 class ZoneTopology(BaseModel):
     zone_id: str
@@ -21,17 +29,26 @@ class ZoneTopology(BaseModel):
     capacity: int = Field(..., gt=0)
     sq_ft: float = Field(..., gt=0)
 
+
 class CalendarEvent(BaseModel):
     event_id: str
     expected_attendees: int = Field(default=0, ge=0)
     start_time: datetime
     end_time: datetime
 
+    @model_validator(mode="after")
+    def check_time_order(self) -> "CalendarEvent":
+        if self.start_time > self.end_time:
+            raise ValueError("start_time cannot be after end_time")
+        return self
+
+
 class OccupancyAnomaly(BaseModel):
     type: str
     severity: AnomalySeverity
     description: str
     recommendation: str
+
 
 class OccupancyPredictionModel(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
@@ -41,8 +58,8 @@ class OccupancyPredictionModel(BaseModel):
 
 
 class OccupancyOutput(BaseModel):
-    model_config = ConfigDict(extra='forbid', populate_by_name=True)
-    
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+
     zone_id: str
     timestamp: datetime
     current_occupancy: int = Field(..., ge=0)
@@ -56,6 +73,7 @@ class OccupancyOutput(BaseModel):
     confidence: float = Field(..., ge=0.0, le=1.0)
     reasoning: str
     recommendations: List[str] = Field(default_factory=list)
+
 
 class SharedState(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)

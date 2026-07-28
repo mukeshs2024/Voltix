@@ -7,7 +7,7 @@ from typing import Dict, Any, List
 import json
 from .sensor_models import EnterpriseTelemetry
 from .telemetry_stream import TelemetryStream
-from ai.decision_engine.supervisor import DecisionEngineSupervisor
+from ai.decision_engine.orchestrator import Orchestrator
 from ai.agents.occupancy.occupancy_agent import OccupancyAgent
 from ai.agents.thermal.thermal_agent import ThermalAgent
 from ai.agents.energy.energy_agent import EnergyAgent
@@ -19,7 +19,7 @@ class BuildingSimulator:
     def __init__(self, ui_callback):
         self.stream = TelemetryStream(self._on_telemetry, interval_seconds=2.0)
         self.ui_callback = ui_callback
-        self.supervisor = DecisionEngineSupervisor()
+        self.orchestrator = Orchestrator()
         self.agents = [
             OccupancyAgent(), ThermalAgent(), EnergyAgent(),
             EquipmentAgent(), GridAgent(), SafetyAgent()
@@ -53,46 +53,46 @@ class BuildingSimulator:
         }
 
     def _on_telemetry(self, telemetry: EnterpriseTelemetry):
-        # 1. Map to AI Pipeline format
-        shared_state = self._map_to_shared_state(telemetry)
-        
-        # 2. Run Agents
-        proposed_actions = []
-        for agent in self.agents:
-            result = agent.process(shared_state.copy())
-            if isinstance(result, dict):
-                key = agent.__class__.__name__
-                if key == "OccupancyAgent" and "occupancy_metrics" in result:
-                    proposed_actions.append({key: result["occupancy_metrics"]})
-                elif key == "ThermalAgent" and "thermal_metrics" in result:
-                    proposed_actions.append({key: result["thermal_metrics"]})
-                elif key == "EnergyAgent" and "energy_metrics" in result:
-                    proposed_actions.append({key: result["energy_metrics"]})
-                elif key == "GridAgent" and "grid_metrics" in result:
-                    proposed_actions.append({key: result["grid_metrics"]})
-                elif key == "SafetyAgent" and "safety_metrics" in result:
-                    proposed_actions.append({key: result["safety_metrics"]})
-                elif key == "EquipmentAgent" and "equipment_metrics" in result:
-                    proposed_actions.append({key: result["equipment_metrics"]})
-                else:
-                    proposed_actions.append({key: {}})
-                    
-        # 3. Run Supervisor
-        agg_state = {"proposed_actions": proposed_actions}
-        final_state = self.supervisor.process_state(agg_state)
-        
-        # 4. Extract Decision
-        decision_dict = {}
         try:
-            if final_state.get("final_decision"):
-                decision_dict = json.loads(final_state["final_decision"])
-        except Exception:
-            pass
+            # 1. Map to AI Pipeline format
+            shared_state = self._map_to_shared_state(telemetry)
             
-        # 5. Send to UI
-        self.ui_callback(
-            telemetry=telemetry,
-            decision=decision_dict,
-            time_str=self.stream.get_virtual_time().strftime("%H:%M:%S"),
-            scenario=self.stream.get_current_scenario()
-        )
+            # 2. Run Agents
+            proposed_actions = []
+            for agent in self.agents:
+                result = agent.process(shared_state.copy())
+                
+                if isinstance(result, dict):
+                    key = agent.__class__.__name__
+                    if key == "OccupancyAgent" and "occupancy_metrics" in result:
+                        proposed_actions.append({key: result["occupancy_metrics"]})
+                    elif key == "ThermalAgent" and "thermal_metrics" in result:
+                        proposed_actions.append({key: result["thermal_metrics"]})
+                    elif key == "EnergyAgent" and "energy_metrics" in result:
+                        proposed_actions.append({key: result["energy_metrics"]})
+                    elif key == "GridAgent" and "grid_metrics" in result:
+                        proposed_actions.append({key: result["grid_metrics"]})
+                    elif key == "SafetyAgent" and "safety_metrics" in result:
+                        proposed_actions.append({key: result["safety_metrics"]})
+                    elif key == "EquipmentAgent" and "equipment_metrics" in result:
+                        proposed_actions.append({key: result["equipment_metrics"]})
+                        
+            # 3. Run Orchestrator
+            agg_state = {"proposed_actions": proposed_actions}
+            decision_pkg = self.orchestrator.process(agg_state)
+            
+            # 4. Extract Decision
+            decision_dict = decision_pkg.model_dump()
+                
+            # 5. Send to UI
+            self.ui_callback(
+                telemetry=telemetry,
+                decision=decision_dict,
+                time_str=self.stream.get_virtual_time().strftime("%H:%M:%S"),
+                scenario=self.stream.get_current_scenario()
+            )
+        except Exception as e:
+            import traceback
+            with open("simulator_crash.log", "a") as f:
+                f.write(traceback.format_exc() + "\n")
+            print(f"CRASH IN TELEMETRY LOOP: {e}")

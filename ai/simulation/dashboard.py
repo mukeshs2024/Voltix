@@ -62,7 +62,19 @@ class EnterpriseDashboard:
         header_text = Text(f"Voltix BMS | Time: {self.time_str} | Scenario: {self.scenario}", style="bold cyan", justify="center")
         layout["header"].update(Panel(header_text, style="white on blue"))
         
+        # Initialize all sections with loading panels to prevent raw Layout strings
+        layout["left"]["telemetry"].update(Panel("Awaiting Telemetry...", title="Live Telemetry Stream"))
+        layout["left"]["occupancy_gauge"].update(Panel("Awaiting Data...", title="Occupancy %"))
+        layout["right"]["supervisor"].update(Panel("Awaiting Data...", title="AI Supervisor"))
+        layout["right"]["anomalies"].update(Panel("Awaiting Data...", title="Detected Anomalies"))
+        
         if not self.telemetry:
+            # Footer needs to be initialized regardless
+            footer_cmds = (
+                "[1] Morning Rush | [2] Conference | [3] Ghost Booking | [4] Fire Drill\n"
+                "[5] Empty | [6] Holiday | [8] Stress Test | [9] AI Eval | [Q] Quit"
+            )
+            layout["footer"].update(Panel(footer_cmds, title="Voltix AI Commands", style="white on black"))
             return layout
             
         # Left - Telemetry
@@ -121,7 +133,15 @@ class EnterpriseDashboard:
 
     def _check_keys(self):
         if msvcrt.kbhit():
-            key = msvcrt.getch().decode('utf-8').lower()
+            ch = msvcrt.getch()
+            if ch in (b'\x00', b'\xe0'):
+                msvcrt.getch()
+                return
+            try:
+                key = ch.decode('ascii').lower()
+            except UnicodeDecodeError:
+                return
+                
             if key == '1': self.simulator.set_scenario("Morning Rush")
             elif key == '2': self.simulator.set_scenario("Conference")
             elif key == '3': self.simulator.set_scenario("Ghost Booking")
