@@ -3,7 +3,7 @@
 import React from "react";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
 import { Button } from "@/components/ui/button";
-import { Search, Bell, Sparkles, Filter, Building, User } from "lucide-react";
+import { Search, Bell, Sparkles } from "lucide-react";
 
 export function Header() {
   const { selectedTimeframe, setTimeframe, toggleCopilotDrawer } = useDashboardStore();

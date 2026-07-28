@@ -37,7 +37,7 @@ export interface ScenarioNodeData {
   label: string;
   type: "trigger" | "condition" | "action";
   status: "idle" | "running" | "success" | "error";
-  config: Record<string, any>;
+  config: Record<string, unknown>;
 }
 
 export interface AIRecommendation {
