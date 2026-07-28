@@ -20,3 +20,5 @@ Reviewed and updated the occupancy agent package under `ai/agents/occupancy/`.
 ## Notes
 - The repository still contains a legacy top-level occupancy agent at `ai/agents/occupancy.py` that is separate from the package reviewed here.
 - The new stress test is intentionally lightweight and uses `tracemalloc` so it can run without extra dependencies.
+
+
