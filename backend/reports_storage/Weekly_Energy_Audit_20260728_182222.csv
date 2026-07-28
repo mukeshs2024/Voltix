@@ -1,0 +1,11 @@
+Metric,Value
+Report Title,Weekly Energy Audit
+Report Type,energy
+Generated Timestamp UTC,2026-07-28T18:22:22.324046+00:00
+Average Temperature (C),22.5
+Average Humidity (%),45.0
+Total Occupancy Count,120
+Total Power Usage (kW),350.0
+Average CO2 Level (ppm),420.0
+Data Points Count,1
+AI Recommendation,Pre-cool zones 1-4 prior to 8 AM peak demand window.

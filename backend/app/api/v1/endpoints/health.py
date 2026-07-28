@@ -14,19 +14,17 @@ async def health_check(db: DatabaseDep, redis: RedisDep):
     db_status = "healthy"
     redis_status = "healthy"
 
-    # Check Database Connectivity
     try:
-        await db.execute(text("SELECT 1"))
+        res = await db.execute(text("SELECT 1"))
     except Exception as e:
         db_status = f"unhealthy: {str(e)}"
 
-    # Check Redis Connectivity
     try:
         await redis.ping()
     except Exception as e:
         redis_status = f"unhealthy: {str(e)}"
 
-    is_healthy = db_status == "healthy" and redis_status == "healthy"
+    is_healthy = not ("unhealthy" in db_status or "unhealthy" in redis_status)
 
     return {
         "status": "ok" if is_healthy else "degraded",

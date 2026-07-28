@@ -1,9 +1,14 @@
 import logging
 import uuid
-from typing import Any
-from fastapi import APIRouter, status
+from typing import Any, List
+from uuid import UUID
+from fastapi import APIRouter, Depends, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.app.core.database import get_db
 from backend.app.core.dependencies import SimulationRepositoryDep
+from backend.app.core.rbac import PermissionEnum, require_permissions
+from backend.app.domain.schemas.scenario import RunScenarioRequest, SimulationRunResponse
 from backend.app.domain.schemas.simulation import (
     AgentReport,
     DecisionPayload,
@@ -11,7 +16,9 @@ from backend.app.domain.schemas.simulation import (
     SimulationRequest,
     SimulationResponse,
 )
+from backend.app.infrastructure.db.models.user import User
 from backend.app.services.ai_client import ai_client
+from backend.app.services.scenario_service import ScenarioService
 
 logger = logging.getLogger(__name__)
 
@@ -22,35 +29,26 @@ router = APIRouter(prefix="/simulation", tags=["Simulation Engine"])
 async def run_simulation(
     payload: SimulationRequest,
     simulation_repo: SimulationRepositoryDep,
+    current_user: User = Depends(require_permissions([PermissionEnum.SIMULATION])),
 ) -> Any:
     """
     Triggers multi-agent AI simulation based on building telemetry data.
-    Flow:
-    1. Validates incoming telemetry log and stores record in Supabase PostgreSQL.
-    2. Dispatches payload to external Multi-Agent AI Service.
-    3. Persists decisions, agent proposal logs, and negotiation trace.
-    4. Returns final simulation results.
     """
-    # Generate unique simulation execution ID
     simulation_id = f"sim_{uuid.uuid4().hex[:12]}"
 
-    # Step 1: Store telemetry in database
     try:
         await simulation_repo.save_telemetry(payload.model_dump())
     except Exception as e:
         await simulation_repo.rollback()
-        logger.warning(f"Database telemetry persistence bypassed (DB offline/unreachable): {str(e)}")
+        logger.warning(f"Database telemetry persistence bypassed: {str(e)}")
 
-    # Step 2: Call AI Multi-Agent Service
     ai_result = await ai_client.run_simulation(payload.model_dump())
 
-    # Extract decision, reports, and negotiation trace from AI output
     status_str = ai_result.get("status", "completed")
     decision_dict = ai_result.get("decision", {})
     agent_reports_raw = ai_result.get("agent_reports", [])
     negotiation_trace_raw = ai_result.get("negotiation_trace", [])
 
-    # Step 3: Persist simulation decisions, logs, and trace in database
     try:
         await simulation_repo.save_simulation_results(
             simulation_id=simulation_id,
@@ -60,9 +58,8 @@ async def run_simulation(
         )
     except Exception as e:
         await simulation_repo.rollback()
-        logger.warning(f"Database results persistence bypassed (DB offline/unreachable): {str(e)}")
+        logger.warning(f"Database results persistence bypassed: {str(e)}")
 
-    # Step 4: Format Pydantic response models
     decision_obj = DecisionPayload(
         action=decision_dict.get("action", "Maintain default safe operation"),
         reason=decision_dict.get("reason", "Baseline operation"),
@@ -71,19 +68,13 @@ async def run_simulation(
 
     agent_reports_formatted = []
     for rep in agent_reports_raw:
-        agent_name = str(rep.get("agent", rep.get("agent_name", "Agent")))
-        proposal = str(rep.get("proposal", ""))
-        impact = str(rep.get("impact", ""))
-        reasoning = str(rep.get("reasoning", ""))
-        confidence = float(rep.get("confidence", 0.90))
-
         agent_reports_formatted.append(
             AgentReport(
-                agent=agent_name,
-                proposal=proposal,
-                impact=impact,
-                reasoning=reasoning,
-                confidence=confidence,
+                agent=str(rep.get("agent", rep.get("agent_name", "Agent"))),
+                proposal=str(rep.get("proposal", "")),
+                impact=str(rep.get("impact", "")),
+                reasoning=str(rep.get("reasoning", "")),
+                confidence=float(rep.get("confidence", 0.90)),
             )
         )
 
@@ -104,3 +95,43 @@ async def run_simulation(
         agent_reports=agent_reports_formatted,
         negotiation_trace=negotiation_trace_formatted,
     )
+
+
+@router.post("/{run_id}/pause", response_model=SimulationRunResponse)
+async def pause_simulation(
+    run_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_permissions([PermissionEnum.SIMULATION])),
+):
+    service = ScenarioService(session=db)
+    return await service.pause_simulation(run_id)
+
+
+@router.post("/{run_id}/resume", response_model=SimulationRunResponse)
+async def resume_simulation(
+    run_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_permissions([PermissionEnum.SIMULATION])),
+):
+    service = ScenarioService(session=db)
+    return await service.resume_simulation(run_id)
+
+
+@router.post("/{run_id}/reset", response_model=SimulationRunResponse)
+async def reset_simulation(
+    run_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_permissions([PermissionEnum.SIMULATION])),
+):
+    service = ScenarioService(session=db)
+    return await service.reset_simulation(run_id)
+
+
+@router.get("/history", response_model=List[SimulationRunResponse])
+async def get_simulation_history(
+    limit: int = 50,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_permissions([PermissionEnum.READ])),
+):
+    service = ScenarioService(session=db)
+    return await service.get_history(limit=limit)

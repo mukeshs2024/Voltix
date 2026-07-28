@@ -1,15 +1,14 @@
 from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.app.core.database import get_db
 from backend.app.core.dependencies import CurrentUserDep, UserRepositoryDep
-from backend.app.core.security import create_access_token, decode_token, get_password_hash, verify_password
-from backend.app.domain.schemas.user import (
-    SupabaseTokenAuth,
-    Token,
-    UserCreate,
-    UserResponse,
-)
+from backend.app.core.security import create_access_token, create_refresh_token, decode_token, get_password_hash, verify_password
+from backend.app.domain.schemas.auth import LoginRequest, RefreshTokenRequest, SupabaseVerifyRequest, TokenResponse
+from backend.app.domain.schemas.user import SupabaseTokenAuth, Token, UserCreate, UserResponse
+from backend.app.services.auth_service import AuthService
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -36,13 +35,25 @@ async def register_user(
     return new_user
 
 
-@router.post("/login", response_model=Token)
+@router.post("/login", response_model=TokenResponse)
 async def login(
+    login_data: LoginRequest,
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    """
+    JSON login endpoint returning access token and refresh token.
+    """
+    auth_service = AuthService(session=db)
+    return await auth_service.authenticate_user(login_data)
+
+
+@router.post("/login/form", response_model=Token)
+async def login_form(
     user_repo: UserRepositoryDep,
     form_data: OAuth2PasswordRequestForm = Depends(),
 ) -> Any:
     """
-    OAuth2 compatible token login, get an access token for future requests.
+    OAuth2 compatible form login, get an access token.
     """
     user = await user_repo.get_by_email(form_data.username)
     if not user or not user.hashed_password:
@@ -65,6 +76,18 @@ async def login(
 
     access_token = create_access_token(subject=str(user.id), role=user.role)
     return Token(access_token=access_token, token_type="bearer")
+
+
+@router.post("/refresh", response_model=TokenResponse)
+async def refresh_token(
+    req: RefreshTokenRequest,
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    """
+    Refresh access token using a valid refresh token.
+    """
+    auth_service = AuthService(session=db)
+    return await auth_service.refresh_token(req.refresh_token)
 
 
 @router.get("/me", response_model=UserResponse)
@@ -101,15 +124,13 @@ async def verify_supabase_token(
     if not user:
         user = await user_repo.get_by_email(email)
         if user:
-            # Link existing user with supabase_uid
             user = await user_repo.update(user.id, {"supabase_uid": supabase_uid})
         else:
-            # Provision new user from Supabase token info
             user = await user_repo.create({
                 "email": email,
                 "supabase_uid": supabase_uid,
                 "full_name": full_name,
-                "role": decoded.get("role", "user"),
+                "role": decoded.get("role", "Viewer"),
                 "is_active": True,
             })
 

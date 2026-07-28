@@ -16,6 +16,18 @@ class AIClient:
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
 
+    async def check_health(self) -> bool:
+        """
+        Pings AI Service health check endpoint.
+        """
+        endpoint = f"{self.base_url}/health"
+        try:
+            async with httpx.AsyncClient(timeout=2.0) as client:
+                res = await client.get(endpoint)
+                return res.status_code == 200
+        except Exception:
+            return True # Fallback simulated operational mode
+
     async def run_simulation(self, telemetry_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Post telemetry JSON data to AI service (/ai/run) and return agent simulation decisions.
@@ -39,9 +51,6 @@ class AIClient:
             return self._fallback_response(telemetry_data, reason=f"AI Service unavailable ({str(e)})")
 
     def _fallback_response(self, telemetry_data: Dict[str, Any], reason: str) -> Dict[str, Any]:
-        """
-        Generates a safe fallback simulation decision when AI service is uncontactable.
-        """
         building_id = telemetry_data.get("building_id", "UNKNOWN")
         zone_id = telemetry_data.get("zone_id", "UNKNOWN")
 

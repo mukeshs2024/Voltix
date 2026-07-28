@@ -1,9 +1,8 @@
 from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import DeclarativeBase
 from backend.app.core.config import settings
+from backend.app.core.logging import logger
 
-# Create Async Engine with connection pooling
 engine = create_async_engine(
     settings.DATABASE_URL,
     echo=settings.DEBUG,
@@ -12,7 +11,6 @@ engine = create_async_engine(
     max_overflow=10,
 )
 
-# Create Async Session Factory
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,
@@ -25,16 +23,20 @@ AsyncSessionLocal = async_sessionmaker(
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """
     Dependency generator for database sessions.
-    Ensures sessions are automatically closed after request lifecycle.
+    Handles commit/rollback and connection error recovery gracefully.
     """
     async with AsyncSessionLocal() as session:
         try:
             yield session
             if session.is_active:
                 await session.commit()
-        except Exception:
+        except Exception as e:
             if session.is_active:
-                await session.rollback()
+                try:
+                    await session.rollback()
+                except Exception:
+                    pass
+            logger.warning(f"Database session exception caught: {str(e)}")
             raise
         finally:
             await session.close()
