@@ -1,0 +1,16 @@
+# Node dependencies & Next.js builds
+node_modules/
+.next/
+next-env.d.ts
+
+# Python cache & venv
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# OS & IDE
+.DS_Store
+.vscode/
+.idea/

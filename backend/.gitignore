@@ -1,0 +1,53 @@
+# Python Byte-compiled / Cache files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Environment Variables & Secrets
+.env
+.env.local
+.env.*.local
+*.env
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# Testing & Coverage Reports
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# Database & SQLite files
+*.sqlite3
+*.db
+*.sqldump
+
+# Logs
+*.log
+logs/
+
+# Node / Frontend Build & Cache Artifacts
+node_modules/
+.next/
+next-env.d.ts
+package-lock.json
+
+# IDE & Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Temporary & Scratch Files
+scratch/
+tmp/
