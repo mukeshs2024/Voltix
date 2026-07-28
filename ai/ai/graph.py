@@ -39,7 +39,8 @@ def _wrap_agent(agent_instance):
         result = await agent_instance.process(state)
         # Append proposal to state
         proposals = state.get("proposed_actions", [])
-        proposals.append({agent_instance.name: result.model_dump()})
+        dumped_result = result if isinstance(result, dict) else result.model_dump()
+        proposals.append({agent_instance.name: dumped_result})
         return {"proposed_actions": proposals}
     return node_func
 

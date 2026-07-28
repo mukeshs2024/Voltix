@@ -36,7 +36,7 @@ class SimulationRunner:
             "proposed_actions": []
         }
         
-        config = {"configurable": {"thread_id": session_id}}
+        config = {"configurable": {"thread_id": session_id}, "recursion_limit": 50}
         final_state = await self.graph.ainvoke(initial_state, config=config)
         
         # Generate human-readable trace

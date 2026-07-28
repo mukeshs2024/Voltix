@@ -29,7 +29,7 @@ class DecisionEngineSupervisor:
             "EquipmentAgent", "GridAgent", "SafetyAgent"
         ]
         if ChatGroq and os.getenv("GROQ_API_KEY"):
-            self.llm = ChatGroq(temperature=0, model_name="llama3-70b-8192")
+            self.llm = ChatGroq(temperature=0, model_name="llama-3.3-70b-versatile")
         else:
             self.llm = None
         
@@ -46,13 +46,21 @@ class DecisionEngineSupervisor:
     def process_state(self, state: AgentState) -> dict[str, Any]:
         proposed_actions = state.get("proposed_actions", [])
         
+        # Determine which agents haven't run yet in this cycle
+        executed = [list(action.keys())[0] for action in proposed_actions]
+        remaining = [a for a in self.available_agents if a not in executed]
+        
+        print(f"[DEBUG] Supervisor activated. Executed so far: {executed}. Remaining: {remaining}")
+        
         # Fallback to static routing if LLM is unavailable
         if not self.llm or not ChatPromptTemplate:
-            executed = [list(action.keys())[0] for action in proposed_actions]
-            remaining = [a for a in self.available_agents if a not in executed]
             if remaining:
                 return {"active_agent": remaining[0], "consensus_reached": False}
             return {"active_agent": None, "consensus_reached": True}
+
+        # Deterministic safeguard: If all agents ran, force END
+        if not remaining:
+             return {"active_agent": None, "consensus_reached": True}
 
         # Dynamic routing
         prompt = ChatPromptTemplate.from_messages([
@@ -66,15 +74,22 @@ class DecisionEngineSupervisor:
         try:
             # Note: synchronous invoke for simplicity in this node
             result = chain.invoke({
-                "available_agents": ", ".join(self.available_agents),
+                "available_agents": ", ".join(remaining),
                 "twin_state": twin_state_json,
                 "proposals": json.dumps(proposed_actions)
             })
             
-            if result.next_agent == "END":
+            next_agent_val = result.next_agent if hasattr(result, "next_agent") else result.get("next_agent", "END")
+            
+            # Strict safeguard: Never allow the LLM to repeat an agent or pick an invalid one
+            if next_agent_val not in remaining and next_agent_val != "END":
+                next_agent_val = remaining[0] if remaining else "END"
+            
+            if next_agent_val == "END":
                 return {"active_agent": None, "consensus_reached": True}
             
-            return {"active_agent": result.next_agent, "consensus_reached": False}
+            return {"active_agent": next_agent_val, "consensus_reached": False}
         except Exception as e:
             # Fallback if parsing fails
+            print(f"[Supervisor Error]: {e}")
             return {"active_agent": None, "consensus_reached": True}

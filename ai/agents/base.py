@@ -20,7 +20,7 @@ class BaseAgent(ABC):
         self.name = name
         self.description = description
         if ChatGroq and os.getenv("GROQ_API_KEY"):
-            self.llm = ChatGroq(temperature=0, model_name="llama3-70b-8192")
+            self.llm = ChatGroq(temperature=0, model_name="llama-3.3-70b-versatile")
         else:
             self.llm = None 
     
