@@ -17,10 +17,10 @@ export function QuickActions() {
   };
 
   const actions = [
-    { label: "Trigger Auto-Optimize", icon: Zap, variant: "primary" as const, color: "text-white" },
-    { label: "Generate Daily Report", icon: FileText, variant: "secondary" as const, color: "text-[#111827]" },
-    { label: "Reset HVAC Config", icon: RotateCw, variant: "outline" as const, color: "text-[#4B5563]" },
-    { label: "Emergency Grid Halt", icon: PowerOff, variant: "danger" as const, color: "text-white" },
+    { label: "Auto Optimize", icon: Zap, variant: "primary" as const, color: "text-white" },
+    { label: "Generate Report", icon: FileText, variant: "secondary" as const, color: "text-[#111827]" },
+    { label: "Reset HVAC", icon: RotateCw, variant: "outline" as const, color: "text-[#4B5563]" },
+    { label: "Emergency Stop", icon: PowerOff, variant: "danger" as const, color: "text-white" },
   ];
 
   return (
@@ -46,7 +46,7 @@ export function QuickActions() {
                 disabled={isDisabled}
                 onClick={() => handleAction(idx)}
                 className={`w-full flex-col h-auto py-5 gap-3 items-center justify-center text-center transition-all ${
-                  action.variant === 'primary' ? 'bg-[#22C55E] hover:bg-[#16A34A] border-none shadow-sm' : ''
+                  action.variant === 'primary' ? 'bg-[#2563EB] hover:bg-[#1D4ED8] border-none shadow-sm' : ''
                 }`}
               >
                 {isLoading ? (

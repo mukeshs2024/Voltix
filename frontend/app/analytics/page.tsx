@@ -54,37 +54,21 @@ export default function AnalyticsPage() {
         <MetricCard
           title="Total Energy Avoided"
           value="1.24 GWh"
-          trend="up"
-          changePercent={18.4}
-          subtitle="vs baseline"
-          icon={<Zap className="w-4 h-4 text-[#111827]" />}
           delay={0.1}
         />
         <MetricCard
           title="Total Cost Savings"
           value="$110,500"
-          trend="up"
-          changePercent={22.1}
-          subtitle="YTD"
-          icon={<TrendingUp className="w-4 h-4 text-[#22C55E]" />}
           delay={0.2}
         />
         <MetricCard
           title="Carbon Avoided"
           value="840 Tons"
-          trend="up"
-          changePercent={12.5}
-          subtitle="Equiv. 35,000 trees"
-          icon={<Leaf className="w-4 h-4 text-[#22C55E]" />}
           delay={0.3}
         />
         <MetricCard
           title="AI Optimization Impact"
           value="+14.2%"
-          trend="up"
-          changePercent={2.1}
-          subtitle="Overall efficiency boost"
-          icon={<Zap className="w-4 h-4 text-[#111827]" />}
           delay={0.4}
         />
       </SectionContainer>

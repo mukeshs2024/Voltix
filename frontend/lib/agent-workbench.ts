@@ -15,6 +15,9 @@ export interface SimulationScenario {
   description: string;
   agentId: AgentId;
   badge: string;
+  buildingType: string;
+  difficulty: "Low" | "Medium" | "High" | "Extreme";
+  durationMinutes: number;
   defaults: Record<string, number | string>;
 }
 
@@ -524,6 +527,9 @@ export const SIMULATION_SCENARIOS: SimulationScenario[] = [
     description: "High occupancy, rising HVAC demand, and accelerated start-up loads.",
     agentId: "occupancy",
     badge: "Operations",
+    buildingType: "Commercial Office",
+    difficulty: "Medium",
+    durationMinutes: 30,
     defaults: { occupancy: 85, grid_load: 1380, electricity_price: 0.12, solar_generation: 150 },
   },
   {
@@ -532,6 +538,9 @@ export const SIMULATION_SCENARIOS: SimulationScenario[] = [
     description: "Low occupancy, minimal cooling, and baseline operations.",
     agentId: "occupancy",
     badge: "Operations",
+    buildingType: "Commercial Office",
+    difficulty: "Low",
+    durationMinutes: 15,
     defaults: { occupancy: 5, grid_load: 300, electricity_price: 0.08, solar_generation: 250 },
   },
   {
@@ -540,6 +549,9 @@ export const SIMULATION_SCENARIOS: SimulationScenario[] = [
     description: "High grid prices trigger demand response and load shedding.",
     agentId: "grid",
     badge: "Energy",
+    buildingType: "Industrial Facility",
+    difficulty: "High",
+    durationMinutes: 45,
     defaults: { occupancy: 60, grid_load: 1200, electricity_price: 0.50, solar_generation: 200 },
   },
   {
@@ -548,6 +560,9 @@ export const SIMULATION_SCENARIOS: SimulationScenario[] = [
     description: "Extreme heat wave pushes cooling systems to maximum capacity.",
     agentId: "hvac",
     badge: "Thermal",
+    buildingType: "Commercial Office",
+    difficulty: "High",
+    durationMinutes: 60,
     defaults: { occupancy: 70, grid_load: 1600, electricity_price: 0.15, solar_generation: 400, outdoor_temp: 38 },
   },
   {
@@ -556,6 +571,9 @@ export const SIMULATION_SCENARIOS: SimulationScenario[] = [
     description: "Overcast conditions reduce renewable output, increasing grid reliance.",
     agentId: "energy",
     badge: "Energy",
+    buildingType: "Mixed-Use Complex",
+    difficulty: "Medium",
+    durationMinutes: 30,
     defaults: { occupancy: 65, grid_load: 1100, electricity_price: 0.12, solar_generation: 10 },
   },
   {
@@ -564,6 +582,9 @@ export const SIMULATION_SCENARIOS: SimulationScenario[] = [
     description: "Charging and discharging cycles for maximum tariff arbitrage.",
     agentId: "grid",
     badge: "Energy",
+    buildingType: "Data Center",
+    difficulty: "Low",
+    durationMinutes: 15,
     defaults: { occupancy: 50, grid_load: 800, electricity_price: 0.05, solar_generation: 300, battery_soc: 20 },
   },
   {
@@ -572,6 +593,9 @@ export const SIMULATION_SCENARIOS: SimulationScenario[] = [
     description: "Chiller performance degrades, prompting maintenance alerts.",
     agentId: "equipment",
     badge: "Maintenance",
+    buildingType: "Healthcare Center",
+    difficulty: "High",
+    durationMinutes: 45,
     defaults: { occupancy: 75, grid_load: 1400, electricity_price: 0.14, solar_generation: 200, chiller_health: 65 },
   },
   {
@@ -580,6 +604,9 @@ export const SIMULATION_SCENARIOS: SimulationScenario[] = [
     description: "Vibration anomalies detected in critical air handling units.",
     agentId: "equipment",
     badge: "Maintenance",
+    buildingType: "Industrial Facility",
+    difficulty: "Extreme",
+    durationMinutes: 60,
     defaults: { occupancy: 80, grid_load: 1200, electricity_price: 0.12, solar_generation: 150, motor_vibration: 12.5 },
   },
   {
@@ -588,6 +615,9 @@ export const SIMULATION_SCENARIOS: SimulationScenario[] = [
     description: "Unexpectedly low turnout allows aggressive energy savings.",
     agentId: "occupancy",
     badge: "Operations",
+    buildingType: "Educational Campus",
+    difficulty: "Low",
+    durationMinutes: 15,
     defaults: { occupancy: 15, grid_load: 600, electricity_price: 0.10, solar_generation: 150 },
   },
   {
@@ -596,9 +626,40 @@ export const SIMULATION_SCENARIOS: SimulationScenario[] = [
     description: "Full capacity stresses safety, thermal, and security systems.",
     agentId: "safety",
     badge: "Safety",
+    buildingType: "Mixed-Use Complex",
+    difficulty: "Extreme",
+    durationMinutes: 45,
     defaults: { occupancy: 100, grid_load: 1500, electricity_price: 0.16, solar_generation: 200, co2_level: 900 },
   },
 ];
+
+export async function fetchScenariosMetadata(): Promise<SimulationScenario[]> {
+  try {
+    const res = await fetch(`${resolveBackendUrl()}/api/v1/scenarios/templates`);
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        return data.map((item: any, idx: number) => {
+          const fallback = SIMULATION_SCENARIOS[idx % SIMULATION_SCENARIOS.length];
+          return {
+            id: item.id || fallback.id,
+            name: item.name || fallback.name,
+            description: item.description || fallback.description,
+            agentId: fallback.agentId,
+            badge: fallback.badge,
+            buildingType: fallback.buildingType,
+            difficulty: fallback.difficulty,
+            durationMinutes: fallback.durationMinutes,
+            defaults: item.config_data ? JSON.parse(item.config_data) : fallback.defaults,
+          };
+        });
+      }
+    }
+  } catch (err) {
+    // Fallback to static metadata on network error
+  }
+  return SIMULATION_SCENARIOS;
+}
 
 export function getScenarioById(scenarioId: string) {
   return SIMULATION_SCENARIOS.find((scenario) => scenario.id === scenarioId) ?? SIMULATION_SCENARIOS[0];

@@ -16,7 +16,7 @@ export function PageContainer({ children, className }: PageContainerProps) {
       initial="hidden"
       animate="visible"
       variants={staggerContainer}
-      className={cn("space-y-8 max-w-7xl mx-auto w-full", className)}
+      className={cn("space-y-6 w-full", className)}
     >
       {children}
     </motion.div>

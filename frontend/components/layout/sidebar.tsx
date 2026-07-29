@@ -51,7 +51,7 @@ export function Sidebar() {
       <aside
         className={cn(
           "bg-[#FCFCFC] border-r border-[#E5E7EB] h-screen fixed lg:sticky top-0 flex flex-col transition-all duration-300 z-50 select-none",
-          collapsed ? "w-20" : "w-64",
+          collapsed ? "w-16" : "w-56",
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
@@ -59,7 +59,7 @@ export function Sidebar() {
         <div className="h-16 px-5 border-b border-[#E5E7EB] flex items-center justify-between bg-[#FCFCFC]">
           <Link href="/" className="flex items-center gap-3 overflow-hidden">
             <div className="w-9 h-9 rounded-xl bg-[#111827] flex items-center justify-center text-white shrink-0 shadow-sm">
-              <Zap className="w-5 h-5 text-[#22C55E]" />
+              <Zap className="w-5 h-5 text-[#2563EB]" />
             </div>
             {!collapsed && (
               <div className="flex flex-col">
@@ -101,7 +101,7 @@ export function Sidebar() {
                 <Icon
                   className={cn(
                     "w-4 h-4 shrink-0 transition-colors",
-                    isActive ? "text-[#22C55E]" : "text-[#6B7280] group-hover:text-[#111827]"
+                    isActive ? "text-[#2563EB]" : "text-[#6B7280] group-hover:text-[#111827]"
                   )}
                 />
                 {!collapsed && <span className="truncate">{item.name}</span>}
@@ -110,23 +110,6 @@ export function Sidebar() {
           })}
         </div>
 
-        {/* Footer / Status */}
-        <div className="p-4 border-t border-[#E5E7EB] bg-[#FCFCFC]">
-          <div
-            className={cn(
-              "flex items-center gap-3 p-2.5 rounded-[12px] bg-[#FAFAFA] border border-[#E5E7EB]",
-              collapsed && "justify-center p-2"
-            )}
-          >
-            <span className="w-2.5 h-2.5 rounded-full bg-[#22C55E] animate-pulse shrink-0" />
-            {!collapsed && (
-              <div className="flex flex-col overflow-hidden">
-                <span className="text-xs font-semibold text-[#111827] truncate">System Active</span>
-                <span className="text-[10px] text-[#6B7280]">Autonomous Grid Live</span>
-              </div>
-            )}
-          </div>
-        </div>
       </aside>
     </>
   );

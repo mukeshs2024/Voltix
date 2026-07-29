@@ -8,10 +8,14 @@
     --primary-text: #111827;
     --secondary-text: #6B7280;
     --border: #E5E7EB;
-    --accent: #22C55E;
-    --success: #22C55E;
-    --warning: #F59E0B;
+    --accent: #2563EB;
+    --success: #10B981;
+    --warning: #F97316;
     --danger: #EF4444;
+  }
+
+  html {
+    font-size: 14px; /* Decreased global font size slightly */
   }
 
   body {
@@ -32,5 +36,5 @@
 }
 
 .rounded-voltix {
-  border-radius: 24px;
+  border-radius: 16px;
 }

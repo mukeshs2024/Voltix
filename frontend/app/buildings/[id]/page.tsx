@@ -333,11 +333,11 @@ export default function BuildingDetailPage() {
 
       <SectionContainer id="overview">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
-          <MetricCard title="Building Overview" value={`${detail.floorCount} floors`} subtitle="modeled in the twin" icon={<Layers3 className="w-4 h-4 text-[#111827]" />} delay={0.05} />
-          <MetricCard title="Health" value={detail.healthScore} subtitle="aggregated system health" icon={<ShieldCheck className="w-4 h-4 text-[#22C55E]" />} delay={0.1} />
-          <MetricCard title="Occupancy" value={`${detail.occupancyRate}%`} subtitle="current live load" icon={<Activity className="w-4 h-4 text-[#111827]" />} delay={0.15} />
-          <MetricCard title="Comfort" value={detail.comfortScore} subtitle="thermal comfort index" icon={<Thermometer className="w-4 h-4 text-[#22C55E]" />} delay={0.2} />
-          <MetricCard title="Carbon" value={`${detail.carbonTons} tons`} subtitle="avoided emissions" icon={<Leaf className="w-4 h-4 text-[#22C55E]" />} delay={0.25} />
+          <MetricCard title="Building Overview" value={`${detail.floorCount} floors`} delay={0.05} />
+          <MetricCard title="Health" value={detail.healthScore} delay={0.1} />
+          <MetricCard title="Occupancy" value={`${detail.occupancyRate}%`} delay={0.15} />
+          <MetricCard title="Comfort" value={detail.comfortScore} delay={0.2} />
+          <MetricCard title="Carbon" value={`${detail.carbonTons} tons`} delay={0.25} />
         </div>
       </SectionContainer>
 

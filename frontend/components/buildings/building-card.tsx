@@ -1,10 +1,7 @@
 "use client";
 
 import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Building2, Activity, Zap, Users, AlertTriangle, ArrowRight } from "lucide-react";
+import { Building2 } from "lucide-react";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Building } from "@/types";
 import { motion } from "framer-motion";
@@ -15,92 +12,103 @@ interface BuildingCardProps {
   index: number;
 }
 
+function MetricItem({ 
+  label, 
+  value, 
+  unit, 
+  centered = false 
+}: { 
+  label: string; 
+  value: string | number; 
+  unit?: string;
+  centered?: boolean;
+}) {
+  return (
+    <div className={`flex flex-col ${centered ? 'items-center text-center' : 'items-start text-left'}`}>
+      <span className="text-[12px] font-medium text-gray-500 mb-1">{label}</span>
+      <span className="text-[30px] leading-none font-bold text-gray-900 tracking-tight whitespace-nowrap">
+        {value}
+      </span>
+      {unit && <span className="text-[12px] font-medium text-gray-500 mt-1">{unit}</span>}
+    </div>
+  );
+}
+
 export function BuildingCard({ building, onClick, index }: BuildingCardProps) {
-  const energyKw = (building.areaSqFt * 0.012).toFixed(1);
+  // Remove unnecessary decimals and add comma separation
+  const energyKw = Math.round(building.areaSqFt * 0.012).toLocaleString();
+
+  // Derive system status text from active alerts and overall status
+  const systemStatus = building.status === "OPTIMAL" 
+    ? "Healthy" 
+    : building.status === "ATTENTION_REQUIRED" 
+      ? "Warning" 
+      : building.status === "CRITICAL" 
+        ? "Critical" 
+        : "Monitoring";
+  
+  const statusColor = building.status === "OPTIMAL" 
+    ? "text-emerald-600" 
+    : building.status === "ATTENTION_REQUIRED" 
+      ? "text-orange-600" 
+      : building.status === "CRITICAL" 
+        ? "text-red-600" 
+        : "text-gray-600";
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.05 }}
-      whileHover={{ y: -4 }}
+      whileHover={{ y: -2 }}
     >
-      <Card 
-        hoverable 
-        className="h-full cursor-pointer overflow-hidden border-[#E5E7EB] hover:border-[#D1D5DB] transition-all"
+      <div 
+        className="bg-white rounded-[14px] border border-[#E5E7EB] shadow-sm cursor-pointer hover:border-gray-300 transition-all flex flex-col h-full"
         onClick={() => onClick(building)}
       >
-        <CardContent className="p-0">
-          <div className="p-5">
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#F3F4F6] to-[#E5E7EB] border border-[#D1D5DB] flex items-center justify-center shrink-0 shadow-inner">
-                  <Building2 className="w-6 h-6 text-[#4B5563]" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-[#111827] text-lg tracking-tight">{building.name}</h3>
-                  <p className="text-sm text-[#6B7280] font-medium">{building.location}</p>
-                </div>
+        <div className="p-[20px] flex-1 flex flex-col">
+          {/* Header */}
+          <div className="flex justify-between items-start mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center shrink-0">
+                <Building2 className="w-5 h-5 text-gray-600" />
               </div>
-              <StatusBadge status={building.status} />
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-4 border-y border-[#E5E7EB] bg-[#FAFAFA] -mx-5 px-5">
-              <div className="flex flex-col">
-                <span className="text-[10px] uppercase font-bold text-[#6B7280] flex items-center gap-1 mb-1">
-                  <Activity className="w-3 h-3" /> AI Score
-                </span>
-                <span className="text-lg font-bold text-[#111827]">{building.energyScore}</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] uppercase font-bold text-[#6B7280] flex items-center gap-1 mb-1">
-                  <Zap className="w-3 h-3" /> Energy
-                </span>
-                <span className="text-lg font-bold text-[#111827]">
-                  {energyKw} <span className="text-xs text-[#6B7280] font-medium">kW</span>
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] uppercase font-bold text-[#6B7280] flex items-center gap-1 mb-1">
-                  <Users className="w-3 h-3" /> Occ.
-                </span>
-                <span className="text-lg font-bold text-[#111827]">{building.occupancyRate}%</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] uppercase font-bold text-[#6B7280] flex items-center gap-1 mb-1">
-                  <AlertTriangle className="w-3 h-3" /> Alerts
-                </span>
-                <span className="text-lg font-bold text-[#111827]">{building.activeAlerts}</span>
+              <div>
+                <h3 className="font-semibold text-gray-900 text-[18px] leading-tight tracking-tight">{building.name}</h3>
+                <p className="text-[14px] text-gray-500">{building.location}</p>
               </div>
             </div>
-
-            <div className="pt-4 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                {building.activeAlerts > 0 ? (
-                  <Badge variant="danger" className="text-[10px]">
-                    {building.activeAlerts} Active Alerts
-                  </Badge>
-                ) : (
-                  <Badge variant="success" className="text-[10px] bg-[#22C55E]/10 text-[#15803D]">
-                    All Systems Nominal
-                  </Badge>
-                )}
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 gap-1 text-[#4B5563] hover:text-[#111827]"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onClick(building);
-                }}
-              >
-                View Details <ArrowRight className="w-3.5 h-3.5" />
-              </Button>
-            </div>
+            <StatusBadge status={building.status} />
           </div>
-        </CardContent>
-      </Card>
+
+          {/* Metrics */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-[20px] items-start mb-6">
+            <MetricItem label="AI Score" value={building.energyScore} />
+            <MetricItem label="Energy" value={energyKw} unit="kW" />
+            <MetricItem label="Occupancy" value={`${building.occupancyRate}%`} />
+            <MetricItem label="Alerts" value={building.activeAlerts} centered={true} />
+          </div>
+
+          {/* Bottom Section */}
+          <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <div className={`w-2 h-2 rounded-full ${building.status === "OPTIMAL" ? "bg-emerald-500" : building.status === "ATTENTION_REQUIRED" ? "bg-orange-500" : building.status === "CRITICAL" ? "bg-red-500" : "bg-gray-400"}`} />
+              <span className={`text-[12px] font-medium ${statusColor}`}>
+                {systemStatus}
+              </span>
+            </div>
+            <button
+              className="h-[36px] px-3 flex items-center gap-1.5 bg-white border border-gray-200 rounded-md text-[13px] font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors focus:outline-none"
+              onClick={(event) => {
+                event.stopPropagation();
+                onClick(building);
+              }}
+            >
+              View Details <span className="text-gray-400">→</span>
+            </button>
+          </div>
+        </div>
+      </div>
     </motion.div>
   );
 }

@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { PageContainer, SectionContainer } from "@/components/shared/page-container";
 import { PageHeader } from "@/components/shared/page-header";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
   User, 

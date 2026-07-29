@@ -3,16 +3,11 @@
 import React from "react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { motion } from "framer-motion";
 
 export interface MetricCardProps {
   title: string;
   value: string | number;
-  changePercent?: number;
-  trend?: "up" | "down" | "neutral";
-  subtitle?: string;
-  icon?: React.ReactNode;
   className?: string;
   delay?: number;
 }
@@ -20,10 +15,6 @@ export interface MetricCardProps {
 export function MetricCard({
   title,
   value,
-  changePercent,
-  trend = "neutral",
-  subtitle,
-  icon,
   className,
   delay = 0,
 }: MetricCardProps) {
@@ -39,11 +30,6 @@ export function MetricCard({
           <span className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider">
             {title}
           </span>
-          {icon && (
-            <div className="p-2 bg-[#FAFAFA] rounded-xl border border-[#E5E7EB] shadow-sm">
-              {icon}
-            </div>
-          )}
         </CardHeader>
         <CardContent>
           <motion.div 
@@ -54,28 +40,6 @@ export function MetricCard({
           >
             {value}
           </motion.div>
-          {(changePercent !== undefined || subtitle) && (
-            <div className="flex items-center gap-2 mt-3 text-xs font-medium">
-              {changePercent !== undefined && (
-                <span
-                  className={cn(
-                    "flex items-center gap-1 font-semibold px-1.5 py-0.5 rounded-md",
-                    trend === "up" ? "text-[#15803D] bg-[#22C55E]/10" : 
-                    trend === "down" ? "text-[#B91C1C] bg-[#EF4444]/10" : 
-                    "text-[#4B5563] bg-[#F3F4F6]"
-                  )}
-                >
-                  {trend === "up" ? (
-                    <ArrowUpRight className="w-3 h-3" />
-                  ) : trend === "down" ? (
-                    <ArrowDownRight className="w-3 h-3" />
-                  ) : null}
-                  {changePercent > 0 ? `+${changePercent}%` : `${changePercent}%`}
-                </span>
-              )}
-              {subtitle && <span className="text-[#6B7280]">{subtitle}</span>}
-            </div>
-          )}
         </CardContent>
       </Card>
     </motion.div>

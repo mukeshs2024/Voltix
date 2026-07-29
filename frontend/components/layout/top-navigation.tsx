@@ -35,7 +35,7 @@ export function TopNavigation() {
       {/* Action Toolbar */}
       <div className="flex items-center gap-2 sm:gap-3">
         <Button variant="outline" size="sm" className="hidden sm:flex gap-2">
-          <Sparkles className="w-3.5 h-3.5 text-[#22C55E]" />
+          <Sparkles className="w-3.5 h-3.5 text-[#2563EB]" />
           <span>AI Assistant</span>
         </Button>
 
@@ -57,7 +57,7 @@ export function TopNavigation() {
             <div className="absolute right-0 mt-2 w-80 bg-white border border-[#E5E7EB] rounded-[16px] shadow-apple-hover overflow-hidden z-50">
               <div className="p-3 border-b border-[#E5E7EB] flex items-center justify-between bg-[#FAFAFA]">
                 <span className="text-sm font-semibold text-[#111827]">Notifications</span>
-                <span className="text-xs text-[#22C55E] font-medium cursor-pointer">Mark all read</span>
+                <span className="text-xs text-[#2563EB] font-medium cursor-pointer">Mark all read</span>
               </div>
               <div className="p-2 max-h-[300px] overflow-y-auto">
                 <div className="p-3 hover:bg-[#FAFAFA] rounded-[12px] cursor-pointer flex gap-3 transition-colors">
@@ -70,8 +70,8 @@ export function TopNavigation() {
                   </div>
                 </div>
                 <div className="p-3 hover:bg-[#FAFAFA] rounded-[12px] cursor-pointer flex gap-3 transition-colors">
-                  <div className="w-8 h-8 rounded-full bg-[#22C55E]/10 flex items-center justify-center shrink-0">
-                    <Sparkles className="w-4 h-4 text-[#22C55E]" />
+                  <div className="w-8 h-8 rounded-full bg-[#2563EB]/10 flex items-center justify-center shrink-0">
+                    <Sparkles className="w-4 h-4 text-[#2563EB]" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-[#111827]">Optimization Successful</p>

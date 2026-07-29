@@ -27,7 +27,7 @@ export function RecommendationPreview({ recommendations }: { recommendations: AI
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-[#22C55E]" />
+            <Sparkles className="w-5 h-5 text-[#2563EB]" />
             <CardTitle>AI Copilot Insights</CardTitle>
           </div>
           <Button variant="ghost" size="sm" className="h-8">
@@ -41,22 +41,17 @@ export function RecommendationPreview({ recommendations }: { recommendations: AI
             return (
               <motion.div 
                 key={rec.id} 
-                className="p-4 border border-[#22C55E]/20 bg-gradient-to-br from-[#22C55E]/5 to-transparent rounded-[16px] hover:border-[#22C55E]/40 transition-colors group"
+                className="p-4 border border-[#2563EB]/20 bg-gradient-to-br from-[#2563EB]/5 to-transparent rounded-[16px] hover:border-[#2563EB]/40 transition-colors group"
                 whileHover={{ y: -2 }}
               >
                 <div className="flex items-start justify-between">
                   <div>
                     <h4 className="text-sm font-bold text-[#111827] flex items-center gap-2">
                       {rec.title}
-                      {rec.confidenceScore > 95 && (
-                        <span className="flex items-center gap-1 text-[10px] bg-[#FEF3C7] text-[#D97706] px-1.5 py-0.5 rounded-sm uppercase tracking-wider font-bold">
-                          High Priority
-                        </span>
-                      )}
                     </h4>
                     <p className="text-xs text-[#6B7280] mt-1 font-medium">{rec.buildingName}</p>
                   </div>
-                  <Badge variant="success" className="bg-white shadow-sm border border-[#22C55E]/20">
+                  <Badge variant="success" className="bg-white shadow-sm border border-[#2563EB]/20">
                     {rec.confidenceScore}% Confidence
                   </Badge>
                 </div>
@@ -65,15 +60,11 @@ export function RecommendationPreview({ recommendations }: { recommendations: AI
                   {rec.actionSummary}
                 </p>
                 
-                <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-[#22C55E]/10">
+                <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-[#2563EB]/10">
                   <div className="flex items-center gap-6">
                     <div className="flex flex-col">
                       <span className="text-[10px] text-[#6B7280] uppercase tracking-wider font-bold">Est. Savings</span>
-                      <span className="text-sm font-extrabold text-[#22C55E]">+${rec.impactUSD}</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[10px] text-[#6B7280] uppercase tracking-wider font-bold">Load Shift</span>
-                      <span className="text-sm font-extrabold text-[#111827]">{rec.energySavingPct}%</span>
+                      <span className="text-sm font-extrabold text-[#2563EB]">+${rec.impactUSD}</span>
                     </div>
                   </div>
                   <Button 
@@ -81,7 +72,7 @@ export function RecommendationPreview({ recommendations }: { recommendations: AI
                     size="sm" 
                     disabled={isExecuting}
                     onClick={() => handleExecute(rec.id)}
-                    className="w-full sm:w-auto bg-[#22C55E] hover:bg-[#16A34A] focus:ring-[#22C55E] text-white shadow-md shadow-[#22C55E]/20 border-none gap-2 transition-all"
+                    className="w-full sm:w-auto bg-[#2563EB] hover:bg-[#1D4ED8] focus:ring-[#2563EB] text-white shadow-md shadow-[#2563EB]/20 border-none gap-2 transition-all"
                   >
                     {isExecuting ? (
                       <>

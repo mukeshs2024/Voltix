@@ -17,7 +17,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 }
 
 export function ContentWrapper({ children }: { children: React.ReactNode }) {
-  return <div className="max-w-7xl mx-auto w-full space-y-8">{children}</div>;
+  return <div className="w-full space-y-6">{children}</div>;
 }
 
 export function PageLayout({ children }: { children: React.ReactNode }) {

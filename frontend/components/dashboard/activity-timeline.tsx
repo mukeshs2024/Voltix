@@ -10,18 +10,16 @@ export function ActivityTimeline() {
   const activities = [
     {
       id: "1",
-      title: "AI Optimization Applied",
-      description: "Chiller setpoint adjusted by +1.5°F",
-      time: "10 mins ago",
+      title: "AI Optimization Applied: Chiller setpoint adjusted",
+      time: "10m",
       icon: Bot,
-      color: "text-[#22C55E]",
-      bg: "bg-[#22C55E]/10"
+      color: "text-[#2563EB]",
+      bg: "bg-[#2563EB]/10"
     },
     {
       id: "2",
-      title: "Demand Spike Detected",
-      description: "East Coast Plaza exceeded 2.0 MW threshold",
-      time: "45 mins ago",
+      title: "Demand Spike Detected: East Coast Plaza",
+      time: "45m",
       icon: Zap,
       color: "text-[#F59E0B]",
       bg: "bg-[#F59E0B]/10"
@@ -29,17 +27,15 @@ export function ActivityTimeline() {
     {
       id: "3",
       title: "Security Scan Completed",
-      description: "No anomalies found in Node 3 network traffic",
-      time: "1 hour ago",
+      time: "1h",
       icon: ShieldAlert,
       color: "text-[#3B82F6]",
       bg: "bg-[#3B82F6]/10"
     },
     {
       id: "4",
-      title: "System Update",
-      description: "Firmware v2.4 installed on Edge Nodes",
-      time: "2 hours ago",
+      title: "System Update: Firmware v2.4 installed",
+      time: "2h",
       icon: Settings,
       color: "text-[#6B7280]",
       bg: "bg-[#F3F4F6]"
@@ -75,9 +71,10 @@ export function ActivityTimeline() {
                     <Icon className={`w-3.5 h-3.5 ${activity.color}`} />
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-[#111827] group-hover:text-[#22C55E] transition-colors">{activity.title}</h4>
-                    <p className="text-xs text-[#4B5563] mt-0.5 leading-relaxed">{activity.description}</p>
-                    <p className="text-[10px] text-[#9CA3AF] mt-1.5 font-bold uppercase tracking-wider">{activity.time}</p>
+                    <h4 className="text-sm font-semibold text-[#111827] flex items-center justify-between group-hover:text-[#2563EB] transition-colors">
+                      <span>{activity.title}</span>
+                      <span className="text-xs text-[#9CA3AF] font-medium">{activity.time}</span>
+                    </h4>
                   </div>
                 </motion.div>
               );

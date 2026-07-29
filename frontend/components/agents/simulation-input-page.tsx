@@ -1,135 +1,223 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Brain, CheckCircle2, ChevronRight, Play } from "lucide-react";
+import { ArrowLeft, Building2, ChevronRight, Filter, FlaskConical, RefreshCw, Search, Sparkles } from "lucide-react";
 
-import { SIMULATION_SCENARIOS } from "@/lib/agent-workbench";
+import {
+  SimulationScenario,
+  fetchScenariosMetadata,
+  resolveBackendUrl,
+} from "@/lib/agent-workbench";
+import { ScenarioCard } from "@/components/scenarios/scenario-card";
+import { ScenarioSkeletonGrid } from "@/components/scenarios/scenario-skeleton";
 import { PageContainer, SectionContainer } from "@/components/shared/page-container";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 
 export default function SimulationInputPage() {
   const router = useRouter();
-  const [selectedScenarioId, setSelectedScenarioId] = useState(SIMULATION_SCENARIOS[0].id);
-  const [loading, setLoading] = useState(false);
+  const [scenarios, setScenarios] = useState<SimulationScenario[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedBuildingType, setSelectedBuildingType] = useState<string>("all");
+  const [startingScenarioId, setStartingScenarioId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleRun = async () => {
-    setLoading(true);
+  useEffect(() => {
+    let isMounted = true;
+    async function loadScenarios() {
+      setIsLoading(true);
+      setError(null);
+      const data = await fetchScenariosMetadata();
+      if (isMounted) {
+        setScenarios(data);
+        setIsLoading(false);
+      }
+    }
+    loadScenarios();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Extract unique building types dynamically from metadata
+  const buildingTypes = useMemo(() => {
+    const types = new Set<string>();
+    scenarios.forEach((s) => {
+      if (s.buildingType) types.add(s.buildingType);
+    });
+    return Array.from(types);
+  }, [scenarios]);
+
+  // Filtered scenarios based on search and building type
+  const filteredScenarios = useMemo(() => {
+    return scenarios.filter((s) => {
+      const matchesSearch =
+        s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        s.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        s.badge.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesType =
+        selectedBuildingType === "all" || s.buildingType === selectedBuildingType;
+
+      return matchesSearch && matchesType;
+    });
+  }, [scenarios, searchTerm, selectedBuildingType]);
+
+  const handleStartSimulation = async (scenario: SimulationScenario) => {
+    setStartingScenarioId(scenario.id);
     setError(null);
 
-    const scenario = SIMULATION_SCENARIOS.find(s => s.id === selectedScenarioId);
-
     try {
-      const res = await fetch("http://localhost:8000/api/v1/simulation/session", {
-          method: "POST",
-          headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer temp'
-          },
-          body: JSON.stringify({
-              scenario_id: scenario?.id,
-              scenario_name: scenario?.name,
-              building_id: "BLD-001"
-          })
+      const res = await fetch(`${resolveBackendUrl()}/api/v1/simulation/session`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer temp",
+        },
+        body: JSON.stringify({
+          scenario_id: scenario.id,
+          scenario_name: scenario.name,
+          building_id: "BLD-001",
+        }),
       });
-      
+
       if (!res.ok) {
-          throw new Error("Failed to execute Digital Twin scenario");
+        throw new Error("Failed to initialize Digital Twin scenario session");
       }
 
-      router.push(`/ai-center`);
-    } catch (runError) {
-      setError(runError instanceof Error ? runError.message : "Failed to run simulation.");
-      setLoading(false);
+      router.push("/ai-center");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to run simulation.");
+      setStartingScenarioId(null);
     }
   };
 
   return (
     <PageContainer>
+      {/* Navigation Breadcrumb */}
       <SectionContainer>
-        <div className="flex items-center gap-3 text-sm text-[#6B7280]">
-          <Link href="/ai-center" className="flex items-center gap-1.5 hover:text-[#111827]">
-            <ArrowRight className="h-4 w-4 rotate-180" /> AI Control Center
+        <div className="flex items-center gap-2 text-[13px] text-gray-500 mb-1">
+          <Link href="/ai-center" className="hover:text-gray-900 transition-colors flex items-center gap-1">
+            <ArrowLeft className="w-3.5 h-3.5" /> AI Control Center
           </Link>
-          <ChevronRight className="h-3.5 w-3.5" />
-          <span className="font-semibold text-[#111827]">Digital Twin Scenario Center</span>
+          <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
+          <span className="font-semibold text-gray-900">Scenario Center</span>
         </div>
 
-        <Card className="border-[#E5E7EB] p-6 mt-6">
-          <div className="grid gap-6 lg:grid-cols-[1.25fr_0.75fr] lg:items-start">
-            <div className="space-y-4">
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#E5E7EB] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-[#6B7280]">
-                <Brain className="h-3.5 w-3.5" /> Full Building Simulation
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold tracking-tight text-[#111827]">Scenario Center</h1>
-                <p className="mt-2 max-w-2xl text-sm text-[#6B7280]">
-                  Execute a Digital Twin scenario to automatically generate randomized telemetry and run all 10 AI Agents simultaneously.
-                </p>
-              </div>
+        {/* Enterprise Title Header */}
+        <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-100">
+              <FlaskConical className="w-3.5 h-3.5" /> Digital Twin Studio
             </div>
+            <h1 className="text-[24px] font-bold tracking-tight text-gray-900">Scenario Center</h1>
+            <p className="text-[14px] text-gray-500 max-w-2xl leading-normal">
+              Execute full-building operational scenarios to evaluate real-time telemetry and trigger simultaneous multi-agent AI responses.
+            </p>
           </div>
-        </Card>
+        </div>
       </SectionContainer>
 
+      {/* Filter & Search Toolbar */}
       <SectionContainer>
-        <div className="grid gap-6 xl:grid-cols-2">
-          <Card className="p-5">
-            <CardHeader className="pb-3">
-              <CardTitle>Global Scenarios</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3 h-[400px] overflow-y-auto pr-2">
-                {SIMULATION_SCENARIOS.map((scenario) => {
-                  const active = selectedScenarioId === scenario.id;
-                  return (
-                    <button
-                      key={scenario.id}
-                      type="button"
-                      onClick={() => setSelectedScenarioId(scenario.id)}
-                      className={cn(
-                        "flex w-full items-start gap-3 rounded-2xl border p-4 text-left transition-all",
-                        active ? "border-[#111827] bg-[#FAFAFA]" : "border-[#E5E7EB] bg-white hover:bg-[#FAFAFA]"
-                      )}
-                    >
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="text-sm font-semibold text-[#111827]">{scenario.name}</div>
-                          {active && <CheckCircle2 className="h-4 w-4 text-[#111827]" />}
-                        </div>
-                        <div className="text-xs text-[#6B7280]">{scenario.description}</div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
+        <div className="bg-white rounded-xl border border-[#E5E7EB] p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+          {/* Search Toolbar */}
+          <div className="relative w-full sm:w-[360px]">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search scenarios by name or description..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full h-[40px] bg-white border border-gray-200 rounded-lg pl-9 pr-4 text-[14px] text-gray-900 placeholder-gray-400 focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 transition-all shadow-xs"
+            />
+          </div>
 
-          <Card className="p-5 flex flex-col justify-center items-center text-center">
-             <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mb-6">
-                <Play className="w-8 h-8 text-blue-600 ml-1" />
-             </div>
-             <h3 className="text-xl font-bold text-[#111827] mb-2">Execute Global Scenario</h3>
-             <p className="text-sm text-[#6B7280] mb-8 max-w-sm">
-                This will trigger all AI agents to analyze the building state for the selected scenario simultaneously.
-             </p>
-             
-              {error && (
-                <div className="mb-4 rounded-2xl border border-[#FCA5A5] bg-[#FEF2F2] p-4 text-sm text-[#B91C1C]">
-                  {error}
-                </div>
-              )}
+          {/* Building Type Filter */}
+          <div className="flex items-center gap-3 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+            <div className="flex items-center gap-1.5 text-[13px] text-gray-500 font-medium whitespace-nowrap">
+              <Filter className="w-3.5 h-3.5" />
+              <span>Building Type:</span>
+            </div>
+            <select
+              value={selectedBuildingType}
+              onChange={(e) => setSelectedBuildingType(e.target.value)}
+              className="h-[40px] bg-white border border-gray-200 rounded-lg px-3 text-[13px] font-medium text-gray-800 focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 cursor-pointer shadow-xs"
+            >
+              <option value="all">All Building Types ({scenarios.length})</option>
+              {buildingTypes.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
 
-             <Button onClick={handleRun} disabled={loading} size="lg" className="w-full max-w-sm bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/20 text-white">
-                {loading ? "Running 10 Agents..." : "Run Digital Twin Scenario"}
-             </Button>
-          </Card>
+            {(searchTerm || selectedBuildingType !== "all") && (
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setSelectedBuildingType("all");
+                }}
+                className="h-[40px] px-3 text-[13px] text-gray-600 hover:text-gray-900 font-medium hover:bg-gray-100 rounded-lg transition-colors whitespace-nowrap flex items-center gap-1"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                Reset
+              </button>
+            )}
+          </div>
         </div>
+      </SectionContainer>
+
+      {/* Error Alert if simulation initialization fails */}
+      {error && (
+        <SectionContainer>
+          <div className="p-4 rounded-xl border border-red-200 bg-red-50 text-[14px] text-red-700 flex items-center justify-between">
+            <span>{error}</span>
+            <button onClick={() => setError(null)} className="text-red-500 font-bold hover:text-red-800">
+              Dismiss
+            </button>
+          </div>
+        </SectionContainer>
+      )}
+
+      {/* Scenario Cards Grid / Loading / Empty State */}
+      <SectionContainer>
+        {isLoading ? (
+          <ScenarioSkeletonGrid count={6} />
+        ) : filteredScenarios.length === 0 ? (
+          /* Empty State */
+          <div className="bg-white rounded-xl border border-gray-200 border-dashed p-12 text-center flex flex-col items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 mb-3">
+              <FlaskConical className="w-6 h-6" />
+            </div>
+            <h3 className="text-[16px] font-semibold text-gray-900 mb-1">No scenarios found</h3>
+            <p className="text-[14px] text-gray-500 max-w-sm mb-4">
+              We couldn't find any operational scenarios matching your search or building filter.
+            </p>
+            <button
+              onClick={() => {
+                setSearchTerm("");
+                setSelectedBuildingType("all");
+              }}
+              className="h-[36px] px-4 bg-gray-900 text-white rounded-lg text-[13px] font-medium hover:bg-gray-800 transition-colors"
+            >
+              Clear Filters
+            </button>
+          </div>
+        ) : (
+          /* Cards Grid */
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 items-stretch">
+            {filteredScenarios.map((scenario) => (
+              <ScenarioCard
+                key={scenario.id}
+                scenario={scenario}
+                onStart={handleStartSimulation}
+                isStarting={startingScenarioId === scenario.id}
+              />
+            ))}
+          </div>
+        )}
       </SectionContainer>
     </PageContainer>
   );
