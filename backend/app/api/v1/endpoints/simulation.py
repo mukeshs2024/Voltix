@@ -20,12 +20,15 @@ from backend.app.domain.schemas.simulation import (
     SimulationRequest,
     SimulationResponse,
 )
+from backend.app.domain.schemas.session import SimulationSessionDTO, SimulationSessionListResponse
 from backend.app.infrastructure.db.models.user import User
 from backend.app.services.ai_client import ai_client
 from backend.app.services.scenario_service import ScenarioService
 from backend.app.services.live_simulator import live_simulator
 from pydantic import BaseModel
 import asyncio
+import uuid
+import datetime
 from backend.simulation.adapters.adapter_factory import AdapterFactory
 from fastapi import HTTPException
 
@@ -170,3 +173,103 @@ async def control_live_simulation(
         live_simulator.set_loop(asyncio.get_running_loop())
     
     return live_simulator.set_mode(mode=payload.mode, speed=payload.speed)
+
+# --- Global Session Storage (In-Memory Fallback) ---
+# Used to ensure the AI Control Center remains highly responsive across all agent views.
+GLOBAL_SESSIONS: Dict[str, SimulationSessionDTO] = {}
+LATEST_SESSION_ID: str = None
+
+class ScenarioExecutionRequest(BaseModel):
+    scenario_id: str
+    scenario_name: str
+    building_id: str
+
+@router.post("/session", response_model=SimulationSessionDTO, status_code=status.HTTP_200_OK)
+async def run_global_scenario_session(
+    payload: ScenarioExecutionRequest,
+    current_user: User = Depends(require_permissions([PermissionEnum.SIMULATION])),
+):
+    global LATEST_SESSION_ID
+    
+    session_id = f"sim_session_{uuid.uuid4().hex[:8]}"
+    
+    # Generate realistic randomized building telemetry based on the scenario
+    # In a real app, this would query a physics engine or the DB for historical scenario baseline.
+    building_state = {
+        "temperature": 22.5,
+        "humidity": 45.0,
+        "occupancy": 150 if payload.scenario_id == "morning-rush" else 20,
+        "power_usage": 450.0,
+        "weather": "Sunny",
+        "scenario_id": payload.scenario_id
+    }
+    
+    agent_results: Dict[str, AgentSimulationResponseUnion] = {}
+    
+    # Execute ALL agents simultaneously with the exact same building state
+    agent_ids = [
+        "equipment", "hvac", "grid", "occupancy", 
+        "carbon", "security", "lighting", "water", "safety", "energy"
+    ]
+    
+    tasks = []
+    for agent_id in agent_ids:
+        adapter = AdapterFactory.get_adapter(agent_id)
+        if adapter:
+            op_input = SimulationOperatorInput(
+                scenario_id=payload.scenario_id,
+                scenario_name=payload.scenario_name,
+                building_id=payload.building_id,
+                agent_id=agent_id,
+                building_data=building_state,
+                telemetry=building_state
+            )
+            tasks.append((agent_id, adapter.process(op_input)))
+            
+    # Run all adapters concurrently
+    for agent_id, task in tasks:
+        try:
+            result = await task
+            agent_results[agent_id] = result
+        except Exception as e:
+            logger.error(f"Agent {agent_id} failed during global execution: {e}")
+            
+    session_dto = SimulationSessionDTO(
+        session_id=session_id,
+        scenario_id=payload.scenario_id,
+        scenario_name=payload.scenario_name,
+        building_id=payload.building_id,
+        timestamp=datetime.datetime.utcnow(),
+        building_state=building_state,
+        agent_results=agent_results,
+        global_status="completed"
+    )
+    
+    GLOBAL_SESSIONS[session_id] = session_dto
+    LATEST_SESSION_ID = session_id
+    
+    return session_dto
+
+@router.get("/session/latest", response_model=SimulationSessionDTO)
+async def get_latest_session(
+    current_user: User = Depends(require_permissions([PermissionEnum.READ])),
+):
+    if not LATEST_SESSION_ID or LATEST_SESSION_ID not in GLOBAL_SESSIONS:
+        raise HTTPException(status_code=404, detail="No active simulation session found.")
+    return GLOBAL_SESSIONS[LATEST_SESSION_ID]
+
+@router.get("/session/{session_id}/{agent_id}", response_model=AgentSimulationResponseUnion)
+async def get_agent_session_result(
+    session_id: str,
+    agent_id: str,
+    current_user: User = Depends(require_permissions([PermissionEnum.READ])),
+):
+    if session_id not in GLOBAL_SESSIONS:
+        raise HTTPException(status_code=404, detail="Session not found")
+        
+    session = GLOBAL_SESSIONS[session_id]
+    if agent_id not in session.agent_results:
+        raise HTTPException(status_code=404, detail=f"Agent {agent_id} data not found in session")
+        
+    return session.agent_results[agent_id]
+

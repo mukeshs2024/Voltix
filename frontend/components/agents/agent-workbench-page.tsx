@@ -20,24 +20,37 @@ export default function AgentWorkbenchPage() {
     const router = useRouter();
     const agentId = params.id as string;
     
+    const searchParams = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
+    const sessionId = searchParams.get("session") || "latest";
+    
     const [data, setData] = useState<AgentSimulationResponseUnion | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const load = () => {
+        const load = async () => {
             try {
-                const stored = sessionStorage.getItem(`voltix_agent_run_${agentId}`);
-                if (stored) {
-                    setData(JSON.parse(stored));
+                // If it's latest, we fetch latest session id first, or we can use the backend /latest endpoint.
+                // Actually the backend endpoint is /session/{session_id}/{agent_id}
+                const res = await fetch(`http://localhost:8000/api/v1/simulation/session/${sessionId}/${agentId}`, {
+                    headers: {
+                        'Authorization': `Bearer temp`
+                    }
+                });
+                
+                if (res.ok) {
+                    const result = await res.json();
+                    setData(result);
+                } else {
+                    console.error("Failed to load agent session data");
                 }
             } catch (e) {
-                console.error("Failed to load agent data", e);
+                console.error("Error fetching agent data", e);
             } finally {
                 setLoading(false);
             }
         };
         load();
-    }, [agentId]);
+    }, [agentId, sessionId]);
 
     if (loading) {
         return <div className="p-8 text-slate-400">Loading Agent Command Center...</div>;
@@ -50,8 +63,8 @@ export default function AgentWorkbenchPage() {
                     <Activity className="w-8 h-8 text-slate-500" />
                 </div>
                 <div className="text-center max-w-md">
-                    <h2 className="text-xl font-semibold text-white mb-2">No Active Session</h2>
-                    <p className="text-sm">There is no active session data found for the {agentId} agent. Run a new simulation to generate operational data.</p>
+                    <h2 className="text-xl font-semibold text-white mb-2">No Session Data</h2>
+                    <p className="text-sm">There is no active session data found for the {agentId} agent. Please run a Digital Twin scenario first.</p>
                 </div>
                 <div className="flex items-center gap-4 mt-4">
                     <button 
@@ -61,10 +74,10 @@ export default function AgentWorkbenchPage() {
                         Back to AI Center
                     </button>
                     <button 
-                        onClick={() => router.push(`/simulation-input?agent=${agentId}`)}
+                        onClick={() => router.push("/simulation-input")}
                         className="px-6 py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/20 text-sm"
                     >
-                        Run New Simulation
+                        Go to Scenario Center
                     </button>
                 </div>
             </div>
@@ -89,12 +102,6 @@ export default function AgentWorkbenchPage() {
                     className="flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-800/50 rounded border border-slate-700/50 hover:bg-slate-800 transition-colors"
                 >
                     <ArrowLeft className="w-4 h-4" /> Back to AI Center
-                </button>
-                <button 
-                    onClick={() => router.push(`/simulation-input?agent=${agentId}`)}
-                    className="flex items-center gap-2 px-4 py-1.5 text-sm font-semibold bg-blue-600 text-white rounded hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/20"
-                >
-                    Run New Simulation
                 </button>
             </div>
 

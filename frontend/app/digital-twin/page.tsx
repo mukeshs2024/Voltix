@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Zap, ShieldAlert, Thermostat, Settings, Users, ArrowRight } from "lucide-react";
+import { ArrowLeft, Zap, ShieldAlert, Thermometer, Settings, Users, ArrowRight } from "lucide-react";
 import { PageContainer, SectionContainer } from "@/components/shared/page-container";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SIMULATION_SCENARIOS, getSimulationStorageKey, runAgentSimulation, type AgentSimulationInputPayload } from "@/lib/agent-workbench";

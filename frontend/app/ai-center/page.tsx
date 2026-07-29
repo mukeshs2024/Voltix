@@ -112,10 +112,34 @@ function MiniBar({ value }: { value: number }) {
 export default function AICenterPage() {
   const [lastRefresh, setLastRefresh] = useState("Just now");
   const [expandedAgent, setExpandedAgent] = useState<string | null>(null);
+  const [session, setSession] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchSession = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("http://localhost:8000/api/v1/simulation/session/latest", {
+          headers: { 'Authorization': 'Bearer temp' }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSession(data);
+        setLastRefresh(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
+      } else {
+        setSession(null);
+      }
+    } catch (e) {
+      console.error(e);
+      setSession(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
+    fetchSession();
     const interval = setInterval(() => {
-      setLastRefresh(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
+      fetchSession();
     }, 30000);
     return () => clearInterval(interval);
   }, []);
@@ -143,6 +167,23 @@ export default function AICenterPage() {
         />
       </SectionContainer>
 
+      {loading ? (
+        <div className="flex justify-center items-center p-20 text-slate-400">Loading Digital Twin State...</div>
+      ) : !session ? (
+        <SectionContainer>
+            <div className="flex flex-col items-center justify-center p-16 bg-[#0a0f18] rounded-xl border border-slate-800 text-center">
+                <Brain className="w-12 h-12 text-slate-600 mb-4" />
+                <h2 className="text-xl font-bold text-white mb-2">No Active Digital Twin Session</h2>
+                <p className="text-slate-400 mb-6 max-w-md">The AI Control Center requires an active Digital Twin scenario to display telemetry and agent intelligence.</p>
+                <Link href="/simulation-input">
+                    <Button className="bg-blue-600 hover:bg-blue-500 text-white font-semibold shadow-lg shadow-blue-500/20">
+                        Open Scenario Center
+                    </Button>
+                </Link>
+            </div>
+        </SectionContainer>
+      ) : (
+      <>
       {/* Supervisor Consensus Banner */}
       <SectionContainer>
         <Card className="border-[#E5E7EB] p-5">
@@ -378,7 +419,7 @@ export default function AICenterPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] text-[#6B7280]">Uptime: {agent.uptime}</span>
                     <Link
-                      href={`/agent/${agent.id}`}
+                      href={`/agent/${agent.id}?session=${session?.session_id || 'latest'}`}
                       onClick={(e) => e.stopPropagation()}
                       className="flex items-center gap-1 text-[10px] font-semibold text-[#111827] hover:text-[#374151] transition-colors"
                     >
@@ -490,6 +531,8 @@ export default function AICenterPage() {
           })}
         </div>
       </SectionContainer>
+      </>
+      )}
     </PageContainer>
   );
 }
