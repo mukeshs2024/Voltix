@@ -21,7 +21,6 @@ export async function fetchFromBackend<T>(endpoint: string, options: RequestInit
       ...options,
       headers: {
         "Content-Type": "application/json",
-        Authorization: "Bearer temp",
         ...(options.headers || {}),
       },
     });

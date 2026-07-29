@@ -36,11 +36,24 @@ export function BootSequenceScreen({
   scenarioName,
   onComplete,
 }: BootSequenceScreenProps) {
+  const [currentStepIdx, setCurrentStepIdx] = React.useState(0);
+
   // If steps are passed from backend/parent, use them; otherwise default to mandatory 6 steps
   const activeSteps: BootStepItem[] = steps ?? MANDATORY_BOOT_STEPS.map((s, idx) => ({
     ...s,
-    status: idx === 0 ? "active" : "pending",
+    status: idx < currentStepIdx ? "completed" : idx === currentStepIdx ? "active" : "pending",
   }));
+
+  React.useEffect(() => {
+    if (currentStepIdx >= activeSteps.length) {
+      const timeout = setTimeout(() => onComplete?.(), 600);
+      return () => clearTimeout(timeout);
+    }
+    const timeout = setTimeout(() => {
+      setCurrentStepIdx(s => s + 1);
+    }, 700); // 700ms per step
+    return () => clearTimeout(timeout);
+  }, [currentStepIdx, activeSteps.length, onComplete]);
 
   const completedCount = activeSteps.filter((s) => s.status === "completed").length;
   const totalCount = activeSteps.length;

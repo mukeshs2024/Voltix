@@ -635,7 +635,13 @@ export const SIMULATION_SCENARIOS: SimulationScenario[] = [
 
 export async function fetchScenariosMetadata(): Promise<SimulationScenario[]> {
   try {
-    const res = await fetch(`${resolveBackendUrl()}/api/v1/scenarios/templates`);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
+    const res = await fetch(`${resolveBackendUrl()}/api/v1/scenarios/templates`, {
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) {

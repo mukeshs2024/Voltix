@@ -14,7 +14,11 @@ import { ScenarioCard } from "@/components/scenarios/scenario-card";
 import { ScenarioSkeletonGrid } from "@/components/scenarios/scenario-skeleton";
 import { PageContainer, SectionContainer } from "@/components/shared/page-container";
 
-export default function SimulationInputPage() {
+interface SimulationInputPageProps {
+  onStartSimulation?: (scenario: SimulationScenario, speed: number) => void;
+}
+
+export default function SimulationInputPage({ onStartSimulation }: SimulationInputPageProps = {}) {
   const router = useRouter();
   const [scenarios, setScenarios] = useState<SimulationScenario[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -64,16 +68,21 @@ export default function SimulationInputPage() {
     });
   }, [scenarios, searchTerm, selectedBuildingType]);
 
-  const handleStartSimulation = async (scenario: SimulationScenario) => {
+  const handleStartSimulation = async (scenario: SimulationScenario, speed: number) => {
     setStartingScenarioId(scenario.id);
     setError(null);
 
+    if (onStartSimulation) {
+      onStartSimulation(scenario, speed);
+      return;
+    }
+
+    // Fallback if not injected
     try {
       const res = await fetch(`${resolveBackendUrl()}/api/v1/simulation/session`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer temp",
         },
         body: JSON.stringify({
           scenario_id: scenario.id,

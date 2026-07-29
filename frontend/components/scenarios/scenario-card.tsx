@@ -7,11 +7,12 @@ import { cn } from "@/lib/utils";
 
 interface ScenarioCardProps {
   scenario: SimulationScenario;
-  onStart: (scenario: SimulationScenario) => void;
+  onStart: (scenario: SimulationScenario, speed: number) => void;
   isStarting?: boolean;
 }
 
 export function ScenarioCard({ scenario, onStart, isStarting = false }: ScenarioCardProps) {
+  const [speed, setSpeed] = React.useState<number>(1);
   const getDifficultyBadge = (difficulty: string) => {
     switch (difficulty) {
       case "Low":
@@ -70,9 +71,30 @@ export function ScenarioCard({ scenario, onStart, isStarting = false }: Scenario
           </div>
         </div>
 
+        {/* Speed Selector */}
+        <div className="mb-4 flex flex-col gap-1.5">
+          <label className="text-[12px] font-medium text-gray-700">Simulation Speed</label>
+          <div className="flex bg-gray-100 p-0.5 rounded-lg border border-gray-200/60">
+            {[1, 2, 5, 10].map((s) => (
+              <button
+                key={s}
+                onClick={() => setSpeed(s)}
+                className={cn(
+                  "flex-1 py-1 text-[12px] font-medium rounded-md transition-all",
+                  speed === s
+                    ? "bg-white text-blue-600 shadow-sm border border-gray-200/50"
+                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
+                )}
+              >
+                {s}×
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Start Simulation Button */}
         <button
-          onClick={() => onStart(scenario)}
+          onClick={() => onStart(scenario, speed)}
           disabled={isStarting}
           className="w-full h-[38px] px-4 bg-[#111827] text-white text-[13px] font-medium rounded-lg hover:bg-gray-800 focus:outline-none transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-xs"
         >

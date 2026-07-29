@@ -5,13 +5,18 @@ import { Building2 } from "lucide-react";
 import { PowerFlow, PowerFlowProps } from "@/components/dashboard/live/power-flow";
 import { cn } from "@/lib/utils";
 
+export interface DigitalTwinPanelProps extends PowerFlowProps {
+  broadcasting?: boolean;
+}
+
 export function DigitalTwinPanel({
   buildingName = "HQ Tower One",
   solarKw = 450,
   batteryKw = 120,
   gridKw = 930,
   loadKw = 1380,
-}: PowerFlowProps) {
+  broadcasting = false,
+}: DigitalTwinPanelProps) {
   const zones = [
     { name: "Lobby & Entrance", temp: "22.1°C", occ: "85%", status: "Optimal", color: "bg-emerald-500" },
     { name: "Executive Suite", temp: "21.8°C", occ: "40%", status: "Optimal", color: "bg-emerald-500" },
@@ -27,19 +32,41 @@ export function DigitalTwinPanel({
   ];
 
   return (
-    <div className="bg-white rounded-xl border border-[#E5E7EB] p-5 shadow-xs flex flex-col justify-between h-full">
+    <div className={cn("bg-white rounded-xl border p-5 shadow-xs flex flex-col justify-between h-full relative overflow-hidden", broadcasting ? "border-blue-400" : "border-[#E5E7EB]")}>
+      
+      {/* Broadcast Overlay Animation */}
+      {broadcasting && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-10 rounded-xl">
+          <div className="absolute inset-0 bg-blue-500/10 animate-pulse" />
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-70 animate-[slide_2s_linear_infinite]" />
+          <style dangerouslySetInnerHTML={{__html: `
+            @keyframes slide {
+              0% { transform: translateY(-100%); }
+              100% { transform: translateY(1000px); }
+            }
+          `}} />
+        </div>
+      )}
+
       {/* Panel Title */}
-      <div className="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-gray-100">
+      <div className="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-gray-100 relative z-20">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-gray-900 flex items-center justify-center text-white">
-            <Building2 className="w-4 h-4 text-blue-400" />
+          <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center text-white transition-colors duration-500", broadcasting ? "bg-blue-600 shadow-[0_0_15px_rgba(37,99,235,0.8)]" : "bg-gray-900")}>
+            <Building2 className={cn("w-4 h-4", broadcasting ? "text-white animate-pulse" : "text-blue-400")} />
           </div>
           <div>
             <h3 className="text-[15px] font-bold text-gray-900 leading-none">Digital Twin & Power Flow</h3>
-            <span className="text-[11px] text-gray-500 font-medium">Real-time Building Physics State</span>
+            <span className="text-[11px] text-gray-500 font-medium">
+              {broadcasting ? (
+                <span className="text-blue-600 font-bold animate-pulse">Broadcasting State...</span>
+              ) : "Real-time Building Physics State"}
+            </span>
           </div>
         </div>
-        <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+        <span className={cn(
+          "text-[11px] font-semibold px-2 py-0.5 rounded-full transition-colors",
+          broadcasting ? "text-blue-700 bg-blue-50 border-blue-200" : "text-emerald-700 bg-emerald-50 border-emerald-200"
+        )}>
           Twin Sync Active
         </span>
       </div>

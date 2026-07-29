@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Activity, Clock, Play, Sparkles, Timer } from "lucide-react";
+import { Activity, Clock, Play, Pause, RefreshCw, Zap, Sparkles, Timer } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LiveHeaderProps {
@@ -9,22 +9,25 @@ interface LiveHeaderProps {
   status?: string;
   simulationTime?: string;
   startTime?: Date | string;
+  speed?: number;
+  onPlay?: () => void;
+  onPause?: () => void;
+  onReset?: () => void;
+  onSpeedChange?: (speed: number) => void;
+  elapsedSeconds?: number;
 }
 
 export function LiveHeader({
   scenarioName = "Morning Office Rush",
   status = "RUNNING",
   simulationTime = "08:45 AM",
-  startTime,
+  speed = 1,
+  onPlay,
+  onPause,
+  onReset,
+  onSpeedChange,
+  elapsedSeconds = 0,
 }: LiveHeaderProps) {
-  const [elapsedSeconds, setElapsedSeconds] = useState(142);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setElapsedSeconds((prev) => prev + 1);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   const formatElapsed = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -84,14 +87,44 @@ export function LiveHeader({
 
         <div className="w-px h-8 bg-gray-200 hidden sm:block" />
 
+        {/* User Controls */}
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-500">
-            <Timer className="w-4 h-4" />
-          </div>
-          <div>
-            <span className="text-[11px] font-medium text-gray-400 block uppercase leading-none">Elapsed Time</span>
-            <span className="text-[14px] font-bold text-gray-900 tracking-tight">{formatElapsed(elapsedSeconds)}</span>
-          </div>
+          {status.toUpperCase() === "PAUSED" ? (
+            <button
+              onClick={onPlay}
+              className="w-8 h-8 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-600 flex items-center justify-center transition-colors"
+              title="Resume Simulation"
+            >
+              <Play className="w-4 h-4 fill-current" />
+            </button>
+          ) : (
+            <button
+              onClick={onPause}
+              className="w-8 h-8 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-600 flex items-center justify-center transition-colors"
+              title="Pause Simulation"
+            >
+              <Pause className="w-4 h-4 fill-current" />
+            </button>
+          )}
+
+          <button
+            onClick={onReset}
+            className="w-8 h-8 rounded-lg bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-600 flex items-center justify-center transition-colors"
+            title="Reset Simulation"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
+          
+          <select
+            value={speed}
+            onChange={(e) => onSpeedChange?.(Number(e.target.value))}
+            className="h-8 bg-gray-50 border border-gray-200 rounded-lg px-2 text-[12px] font-medium text-gray-700 focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 cursor-pointer shadow-xs"
+          >
+            <option value={1}>1×</option>
+            <option value={2}>2×</option>
+            <option value={5}>5×</option>
+            <option value={10}>10×</option>
+          </select>
         </div>
       </div>
     </div>
