@@ -19,11 +19,13 @@ from backend.app.domain.schemas.simulation import (
     SimulationOperatorInput,
     SimulationRequest,
     SimulationResponse,
+    DigitalTwinRunRequest,
 )
 from backend.app.infrastructure.db.models.user import User
 from backend.app.services.ai_client import ai_client
 from backend.app.services.scenario_service import ScenarioService
 from backend.app.services.live_simulator import live_simulator
+from backend.app.services.session_store import session_store
 from pydantic import BaseModel
 import asyncio
 from backend.simulation.adapters.adapter_factory import AdapterFactory
@@ -48,6 +50,70 @@ async def run_agent_simulation(
         raise HTTPException(status_code=400, detail="Unknown agent_id")
     
     return await adapter.process(payload)
+
+
+@router.post("/digital-twin/run")
+async def run_digital_twin_session(
+    payload: DigitalTwinRunRequest,
+    current_user: User = Depends(require_permissions([PermissionEnum.SIMULATION])),
+):
+    agent_ids = ["equipment", "safety", "grid", "hvac", "occupancy", "carbon", "security", "lighting", "water", "energy"]
+    agent_results = {}
+    
+    async def run_agent(agent_id):
+        try:
+            adapter = AdapterFactory.get_adapter(agent_id)
+            if not adapter:
+                return agent_id, None
+            
+            agent_payload = SimulationOperatorInput(
+                scenario_id=payload.scenario_id,
+                scenario_name=payload.scenario_name,
+                building_id=payload.building_id,
+                agent_id=agent_id,
+                building_data=payload.telemetry,
+                telemetry=payload.telemetry,
+                overrides={"source": "digital-twin"}
+            )
+            result = await adapter.process(agent_payload)
+            return agent_id, result
+        except Exception as e:
+            logger.error(f"Agent {agent_id} failed: {e}")
+            return agent_id, None
+
+    tasks = [run_agent(a_id) for a_id in agent_ids]
+    results = await asyncio.gather(*tasks)
+    
+    for a_id, res in results:
+        if res:
+            agent_results[a_id] = res
+            
+    session_id = session_store.create_session(payload.scenario_id, payload.telemetry, agent_results)
+    
+    return {"session_id": session_id}
+
+
+@router.get("/session/{session_id}")
+async def get_digital_twin_session(
+    session_id: str,
+    current_user: User = Depends(require_permissions([PermissionEnum.READ])),
+):
+    session = session_store.get_session(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return session
+
+
+@router.get("/session/{session_id}/{agent_id}")
+async def get_digital_twin_agent_result(
+    session_id: str,
+    agent_id: str,
+    current_user: User = Depends(require_permissions([PermissionEnum.READ])),
+):
+    result = session_store.get_agent_result(session_id, agent_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Agent result not found in session")
+    return result
 
 
 

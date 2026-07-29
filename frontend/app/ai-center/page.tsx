@@ -109,11 +109,47 @@ function MiniBar({ value }: { value: number }) {
   );
 }
 
+import { getSimulationStorageKey, getDigitalTwinSession } from "@/lib/agent-workbench";
+
 export default function AICenterPage() {
   const [lastRefresh, setLastRefresh] = useState("Just now");
   const [expandedAgent, setExpandedAgent] = useState<string | null>(null);
+  const [liveAgents, setLiveAgents] = useState<any[]>(MOCK_AGENTS);
+  const [sessionSummary, setSessionSummary] = useState<any>(null);
 
   useEffect(() => {
+    const fetchSession = async () => {
+      try {
+        const sessionId = sessionStorage.getItem(getSimulationStorageKey());
+        if (sessionId) {
+          const session = await getDigitalTwinSession(sessionId);
+          setSessionSummary(session.summary);
+          
+          if (session.agents && session.agents.length > 0) {
+              const updated = MOCK_AGENTS.map(mock => {
+                  const real = session.agents.find((a: any) => a.id === mock.id);
+                  if (real) {
+                      return {
+                          ...mock,
+                          status: real.status,
+                          health: real.health,
+                          lastDecision: real.lastDecision,
+                          executionState: real.status === "error" ? "Error" : real.status === "warning" ? "Fallback" : "Completed",
+                          anomalyBadges: real.status === "error" ? ["System Failure"] : real.status === "warning" ? ["Degraded"] : ["Normal"],
+                      };
+                  }
+                  return mock;
+              });
+              setLiveAgents(updated);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to load digital twin session", e);
+      }
+    };
+    
+    fetchSession();
+
     const interval = setInterval(() => {
       setLastRefresh(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
     }, 30000);
@@ -251,7 +287,7 @@ export default function AICenterPage() {
           <span className="text-xs text-[#6B7280]">Last updated: {lastRefresh}</span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-          {MOCK_AGENTS.map((agent, i) => {
+          {liveAgents.map((agent, i) => {
             const Icon = AGENT_ICONS[agent.type] || Activity;
             const color = AGENT_COLORS[agent.type];
             const isExpanded = expandedAgent === agent.id;
