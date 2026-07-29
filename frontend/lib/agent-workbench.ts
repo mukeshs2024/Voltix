@@ -520,15 +520,83 @@ export const AGENT_PROFILES: Record<AgentId, AgentProfile> = {
 export const SIMULATION_SCENARIOS: SimulationScenario[] = [
   {
     id: "morning-rush",
-    name: "Morning Rush",
+    name: "Morning Office Rush",
     description: "High occupancy, rising HVAC demand, and accelerated start-up loads.",
+    agentId: "occupancy",
+    badge: "Operations",
+    defaults: { occupancy: 85, grid_load: 1380, electricity_price: 0.12, solar_generation: 150 },
+  },
+  {
+    id: "weekend",
+    name: "Weekend Mode",
+    description: "Low occupancy, minimal cooling, and baseline operations.",
+    agentId: "occupancy",
+    badge: "Operations",
+    defaults: { occupancy: 5, grid_load: 300, electricity_price: 0.08, solar_generation: 250 },
+  },
+  {
+    id: "peak-pricing",
+    name: "Peak Electricity Pricing",
+    description: "High grid prices trigger demand response and load shedding.",
     agentId: "grid",
     badge: "Energy",
-    defaults: {
-      grid_load: 1380,
-      electricity_price: 0.34,
-      solar_generation: 150,
-    },
+    defaults: { occupancy: 60, grid_load: 1200, electricity_price: 0.50, solar_generation: 200 },
+  },
+  {
+    id: "high-temp",
+    name: "High Outdoor Temperature",
+    description: "Extreme heat wave pushes cooling systems to maximum capacity.",
+    agentId: "hvac",
+    badge: "Thermal",
+    defaults: { occupancy: 70, grid_load: 1600, electricity_price: 0.15, solar_generation: 400, outdoor_temp: 38 },
+  },
+  {
+    id: "low-solar",
+    name: "Low Solar Generation",
+    description: "Overcast conditions reduce renewable output, increasing grid reliance.",
+    agentId: "energy",
+    badge: "Energy",
+    defaults: { occupancy: 65, grid_load: 1100, electricity_price: 0.12, solar_generation: 10 },
+  },
+  {
+    id: "battery-opt",
+    name: "Battery Optimization",
+    description: "Charging and discharging cycles for maximum tariff arbitrage.",
+    agentId: "grid",
+    badge: "Energy",
+    defaults: { occupancy: 50, grid_load: 800, electricity_price: 0.05, solar_generation: 300, battery_soc: 20 },
+  },
+  {
+    id: "hvac-drop",
+    name: "HVAC Efficiency Drop",
+    description: "Chiller performance degrades, prompting maintenance alerts.",
+    agentId: "equipment",
+    badge: "Maintenance",
+    defaults: { occupancy: 75, grid_load: 1400, electricity_price: 0.14, solar_generation: 200, chiller_health: 65 },
+  },
+  {
+    id: "wear-increase",
+    name: "Equipment Wear Increase",
+    description: "Vibration anomalies detected in critical air handling units.",
+    agentId: "equipment",
+    badge: "Maintenance",
+    defaults: { occupancy: 80, grid_load: 1200, electricity_price: 0.12, solar_generation: 150, motor_vibration: 12.5 },
+  },
+  {
+    id: "low-occ",
+    name: "Low Occupancy",
+    description: "Unexpectedly low turnout allows aggressive energy savings.",
+    agentId: "occupancy",
+    badge: "Operations",
+    defaults: { occupancy: 15, grid_load: 600, electricity_price: 0.10, solar_generation: 150 },
+  },
+  {
+    id: "high-occ",
+    name: "High Occupancy",
+    description: "Full capacity stresses safety, thermal, and security systems.",
+    agentId: "safety",
+    badge: "Safety",
+    defaults: { occupancy: 100, grid_load: 1500, electricity_price: 0.16, solar_generation: 200, co2_level: 900 },
   },
 ];
 
@@ -540,8 +608,8 @@ export function getAgentProfile(agentId: AgentId) {
   return AGENT_PROFILES[agentId];
 }
 
-export function getSimulationStorageKey(agentId: AgentId) {
-  return `voltix.agent.run.${agentId}`;
+export function getSimulationStorageKey() {
+  return `voltix.session.current`;
 }
 
 export function resolveBackendUrl() {
@@ -553,8 +621,8 @@ export function toNumericValue(value: string, fallback = 0) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-export async function runAgentSimulation(payload: AgentSimulationInputPayload): Promise<AgentSimulationResponse> {
-  const response = await fetch(`${resolveBackendUrl()}/api/v1/simulation/agent/run`, {
+export async function runDigitalTwin(payload: any): Promise<{ session_id: string }> {
+  const response = await fetch(`${resolveBackendUrl()}/api/v1/simulation/digital-twin/run`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -565,5 +633,21 @@ export async function runAgentSimulation(payload: AgentSimulationInputPayload): 
     throw new Error(errorText || `Request failed with status ${response.status}`);
   }
 
+  return response.json();
+}
+
+export async function getDigitalTwinSession(sessionId: string): Promise<any> {
+  const response = await fetch(`${resolveBackendUrl()}/api/v1/simulation/session/${sessionId}`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch session: ${response.status}`);
+  }
+  return response.json();
+}
+
+export async function getAgentSessionResult(sessionId: string, agentId: string): Promise<any> {
+  const response = await fetch(`${resolveBackendUrl()}/api/v1/simulation/session/${sessionId}/${agentId}`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch agent result: ${response.status}`);
+  }
   return response.json();
 }

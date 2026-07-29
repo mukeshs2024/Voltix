@@ -109,35 +109,13 @@ function MiniBar({ value }: { value: number }) {
   );
 }
 
+import { getSimulationStorageKey, getDigitalTwinSession } from "@/lib/agent-workbench";
+
 export default function AICenterPage() {
   const [lastRefresh, setLastRefresh] = useState("Just now");
   const [expandedAgent, setExpandedAgent] = useState<string | null>(null);
-  const [session, setSession] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  const fetchSession = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch("http://localhost:8000/api/v1/simulation/session/latest", {
-          headers: { 'Authorization': 'Bearer temp' }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setSession(data);
-        setLastRefresh(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
-      } else {
-        setSession(null);
-      }
-    } catch (e) {
-      console.error(e);
-      setSession(null);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
-    fetchSession();
     const interval = setInterval(() => {
       fetchSession();
     }, 30000);
@@ -292,7 +270,7 @@ export default function AICenterPage() {
           <span className="text-xs text-[#6B7280]">Last updated: {lastRefresh}</span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-          {MOCK_AGENTS.map((agent, i) => {
+          {liveAgents.map((agent, i) => {
             const Icon = AGENT_ICONS[agent.type] || Activity;
             const color = AGENT_COLORS[agent.type];
             const isExpanded = expandedAgent === agent.id;

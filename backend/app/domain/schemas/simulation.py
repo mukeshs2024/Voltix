@@ -17,6 +17,12 @@ class SimulationOperatorInput(BaseModel):
     telemetry: Dict[str, Any] = Field(default_factory=dict)
     overrides: Dict[str, Any] = Field(default_factory=dict)
 
+class DigitalTwinRunRequest(BaseModel):
+    scenario_id: str = Field(..., examples=["morning-rush"])
+    scenario_name: str = Field(..., examples=["Morning Rush"])
+    building_id: str = Field(..., examples=["BLD001"])
+    telemetry: Dict[str, Any] = Field(default_factory=dict)
+
 class AgentWorkflowStep(BaseModel):
     label: str
     detail: str
