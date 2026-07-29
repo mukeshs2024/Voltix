@@ -49,7 +49,16 @@ class BuildingSimulator:
                 {"sensor_id": "co21", "sensor_type": "CO2", "value": telemetry.environment.co2, "timestamp": telemetry.timestamp, "is_active": True},
             ],
             "calendar": [],
-            "proposed_actions": []
+            "proposed_actions": [],
+            # Additional fields required by agents
+            "current_temperature": telemetry.environment.temperature,
+            "current_setpoint": 24.0, # Defaulting to a safe setpoint
+            "hvac_mode": telemetry.equipment.ahu_status,
+            "current_kw": telemetry.energy.building_power_kw,
+            "peak_limit_kw": 500.0, # Mock value
+            "equipment_id": "AHU-1", # Mock value
+            "runtime_hours": 120, # Mock value
+            "current_price_kwh": telemetry.energy.grid_price
         }
 
     def _on_telemetry(self, telemetry: EnterpriseTelemetry):

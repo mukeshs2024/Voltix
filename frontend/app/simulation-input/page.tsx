@@ -1,0 +1,1 @@
+export { default } from "@/components/agents/simulation-input-page";

@@ -5,7 +5,7 @@ export const NAV_ITEMS = [
   { name: "Alerts & Incidents", href: "/alerts", iconName: "AlertTriangle" },
   { name: "AI Control Center", href: "/ai-center", iconName: "BrainCircuit" },
   { name: "AI Copilot", href: "/copilot", iconName: "Bot" },
-  { name: "Simulation Studio", href: "/scenario-builder", iconName: "FlaskConical" },
+  { name: "Simulation Studio", href: "/simulation-input", iconName: "FlaskConical" },
   { name: "Reports", href: "/reports", iconName: "FileText" },
   { name: "Settings", href: "/settings", iconName: "Settings" },
 ] as const;

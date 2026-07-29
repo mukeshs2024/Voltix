@@ -1,6 +1,6 @@
 import logging
 import uuid
-from typing import Any, List
+from typing import Any, Dict, List
 from uuid import UUID
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,19 +10,45 @@ from backend.app.core.dependencies import SimulationRepositoryDep
 from backend.app.core.rbac import PermissionEnum, require_permissions
 from backend.app.domain.schemas.scenario import RunScenarioRequest, SimulationRunResponse
 from backend.app.domain.schemas.simulation import (
+    AgentDeveloperMetadata,
+    AgentSimulationResponseUnion,
     AgentReport,
     DecisionPayload,
     NegotiationTraceItem,
+    AgentWorkflowStep,
+    SimulationOperatorInput,
     SimulationRequest,
     SimulationResponse,
 )
 from backend.app.infrastructure.db.models.user import User
 from backend.app.services.ai_client import ai_client
 from backend.app.services.scenario_service import ScenarioService
+from backend.app.services.live_simulator import live_simulator
+from pydantic import BaseModel
+import asyncio
+from backend.simulation.adapters.adapter_factory import AdapterFactory
+from fastapi import HTTPException
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/simulation", tags=["Simulation Engine"])
+
+class SimulationControlRequest(BaseModel):
+    mode: str
+    speed: int = 1
+
+
+@router.post("/agent/run", response_model=AgentSimulationResponseUnion, status_code=status.HTTP_200_OK)
+async def run_agent_simulation(
+    payload: SimulationOperatorInput,
+    current_user: User = Depends(require_permissions([PermissionEnum.SIMULATION])),
+):
+    adapter = AdapterFactory.get_adapter(payload.agent_id)
+    if not adapter:
+        raise HTTPException(status_code=400, detail="Unknown agent_id")
+    
+    return await adapter.process(payload)
+
 
 
 @router.post("/run", response_model=SimulationResponse, status_code=status.HTTP_200_OK)
@@ -135,3 +161,12 @@ async def get_simulation_history(
 ):
     service = ScenarioService(session=db)
     return await service.get_history(limit=limit)
+
+@router.post("/control")
+async def control_live_simulation(
+    payload: SimulationControlRequest,
+):
+    if not live_simulator.loop:
+        live_simulator.set_loop(asyncio.get_running_loop())
+    
+    return live_simulator.set_mode(mode=payload.mode, speed=payload.speed)

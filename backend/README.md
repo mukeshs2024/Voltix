@@ -128,6 +128,7 @@ Once the server is running, explore and test interactive endpoints at:
 - **ReDoc:** [http://localhost:8000/redoc](http://localhost:8000/redoc)
 - **Health Check:** `GET http://localhost:8000/api/v1/health`
 
+
 ---
 
 ## 🔑 Available API Endpoints (Phase 1)
