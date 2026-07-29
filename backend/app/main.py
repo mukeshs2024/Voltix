@@ -19,9 +19,12 @@ async def lifespan(app: FastAPI):
     setup_logging()
     logger.info("Initializing Voltix Backend Application...")
     await init_redis()
+    from backend.app.services.digital_twin_engine import simulation_engine
+    await simulation_engine.start()
     yield
     # Shutdown actions
     logger.info("Shutting down Voltix Backend Application...")
+    await simulation_engine.stop()
     await close_redis()
 
 
@@ -54,3 +57,24 @@ async def root():
         "status": "running",
         "docs_url": "/docs",
     }
+
+
+@app.get("/health/db")
+async def health_db():
+    from backend.app.core.database import engine
+    from sqlalchemy import text
+    try:
+        async with engine.connect() as conn:
+            result = await conn.execute(text("SELECT version();"))
+            version_str = result.scalar()
+            return {
+                "status": "connected",
+                "database": "Supabase PostgreSQL",
+                "version": version_str
+            }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+

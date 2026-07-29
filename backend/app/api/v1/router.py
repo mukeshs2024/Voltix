@@ -8,6 +8,7 @@ from backend.app.api.v1.endpoints import (
     buildings,
     dashboard,
     devices,
+    digital_twin,
     equipment,
     floors,
     health,
@@ -27,7 +28,9 @@ from backend.app.api.v1.endpoints import (
 api_router = APIRouter()
 
 api_router.include_router(health.router, tags=["Health"])
+api_router.include_router(digital_twin.router)
 api_router.include_router(auth.router)
+
 api_router.include_router(users.router)
 api_router.include_router(organizations.router)
 api_router.include_router(buildings.router)

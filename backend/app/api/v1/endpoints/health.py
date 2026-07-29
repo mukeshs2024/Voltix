@@ -7,30 +7,25 @@ router = APIRouter()
 
 
 @router.get("/health", status_code=status.HTTP_200_OK)
-async def health_check(db: DatabaseDep, redis: RedisDep):
+async def health_check(db: DatabaseDep):
     """
-    Health check endpoint validating system status, PostgreSQL, and Redis connectivity.
+    Health check endpoint validating system status and PostgreSQL connectivity.
     """
     db_status = "healthy"
-    redis_status = "healthy"
+    db_version = None
 
     try:
-        res = await db.execute(text("SELECT 1"))
+        res = await db.execute(text("SELECT version();"))
+        db_version = res.scalar()
     except Exception as e:
         db_status = f"unhealthy: {str(e)}"
 
-    try:
-        await redis.ping()
-    except Exception as e:
-        redis_status = f"unhealthy: {str(e)}"
-
-    is_healthy = not ("unhealthy" in db_status or "unhealthy" in redis_status)
-
     return {
-        "status": "ok" if is_healthy else "degraded",
+        "status": "ok" if db_status == "healthy" else "degraded",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "services": {
             "database": db_status,
-            "redis": redis_status,
+            "supabase_postgres_version": db_version,
         },
     }
+
