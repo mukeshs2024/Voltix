@@ -25,7 +25,7 @@ interface CustomTooltipProps {
 const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white border border-[#E5E7EB] rounded-[12px] p-3 shadow-apple">
+      <div className="bg-white border border-[#E5E7EB] rounded-[12px] p-3 shadow-soft">
         <p className="text-xs font-semibold text-[#6B7280] mb-2">{label}</p>
         <div className="flex items-center justify-between gap-4 text-sm">
           <span className="flex items-center gap-1.5 text-[#4B5563]">

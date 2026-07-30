@@ -115,6 +115,30 @@ export function LiveHeader({
             <RefreshCw className="w-4 h-4" />
           </button>
           
+          <button
+            onClick={async () => {
+              try {
+                await fetch('/api/alerts', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    title: 'Test Critical Alert',
+                    message: 'This is a test alert from the Voltix Live Dashboard.',
+                    source: 'Dashboard UI',
+                    severity: 'CRITICAL'
+                  })
+                });
+                alert('Test alert email sent!');
+              } catch (e) {
+                alert('Failed to send test alert');
+              }
+            }}
+            className="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 flex items-center justify-center transition-colors"
+            title="Trigger Test Alert Email"
+          >
+            <Zap className="w-4 h-4 fill-current" />
+          </button>
+          
           <select
             value={speed}
             onChange={(e) => onSpeedChange?.(Number(e.target.value))}

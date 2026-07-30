@@ -231,7 +231,7 @@ export default function BuildingDetailPage() {
 
         return (
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="bg-white" onClick={() => setSelectedAnomaly(detail.anomalies[0])}>
+          <Button variant="outline" size="sm" className="bg-surface" onClick={() => setSelectedAnomaly(detail.anomalies[0])}>
             Review
           </Button>
           <Button variant="ghost" size="sm" onClick={() => setCurrentDecisionState("paused")}>
@@ -275,7 +275,7 @@ export default function BuildingDetailPage() {
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
             <div className="space-y-4">
               <div className="flex items-center gap-3 flex-wrap">
-                <Button variant="outline" size="sm" className="bg-white" onClick={() => router.push("/buildings")}>
+                <Button variant="outline" size="sm" className="bg-surface" onClick={() => router.push("/buildings")}>
                   <ArrowLeft className="w-4 h-4" />
                   Back to Grid
                 </Button>
@@ -295,11 +295,11 @@ export default function BuildingDetailPage() {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline" size="sm" className="bg-white" onClick={exportSnapshot}>
+              <Button variant="outline" size="sm" className="bg-surface" onClick={exportSnapshot}>
                 <Download className="w-4 h-4" />
                 Export Snapshot
               </Button>
-              <Button variant="outline" size="sm" className="bg-white" onClick={runSimulation}>
+              <Button variant="outline" size="sm" className="bg-surface" onClick={runSimulation}>
                 <RefreshCw className="w-4 h-4" />
                 Run Simulation
               </Button>
@@ -310,7 +310,7 @@ export default function BuildingDetailPage() {
             </div>
           </div>
 
-          <div className="rounded-[24px] border border-[#E5E7EB] bg-white p-4 shadow-apple overflow-x-auto">
+          <div className="rounded-[24px] border border-[#E5E7EB] bg-surface p-4 shadow-soft overflow-x-auto">
             <div className="flex gap-2 min-w-max">
               {sectionLabels.map((section) => (
                 <Button
@@ -365,7 +365,7 @@ export default function BuildingDetailPage() {
               <div className="rounded-[18px] border border-[#E5E7EB] bg-[#FAFAFA] p-4">
                 <div className="text-xs uppercase tracking-wider text-[#6B7280] font-semibold mb-2">Digital Twin State</div>
                 <div className="text-lg font-semibold text-[#111827]">{detail.digitalTwinSummary}</div>
-                <Button variant="outline" size="sm" className="mt-4 bg-white" onClick={() => scrollToSection("twin")}>Open Twin</Button>
+                <Button variant="outline" size="sm" className="mt-4 bg-surface" onClick={() => scrollToSection("twin")}>Open Twin</Button>
               </div>
             </CardContent>
           </Card>
@@ -423,9 +423,9 @@ export default function BuildingDetailPage() {
                 </div>
               </div>
               <div className="flex gap-2 flex-wrap">
-                <Button variant="outline" size="sm" className="bg-white" onClick={() => setSelectedZone(activeZones[0])}>Focus Zone 1</Button>
-                <Button variant="outline" size="sm" className="bg-white" onClick={() => setSelectedZone(activeZones[1] ?? activeZones[0])}>Focus Zone 2</Button>
-                <Button variant="outline" size="sm" className="bg-white" onClick={() => setSelectedZone(activeZones[2] ?? activeZones[0])}>Focus Zone 3</Button>
+                <Button variant="outline" size="sm" className="bg-surface" onClick={() => setSelectedZone(activeZones[0])}>Focus Zone 1</Button>
+                <Button variant="outline" size="sm" className="bg-surface" onClick={() => setSelectedZone(activeZones[1] ?? activeZones[0])}>Focus Zone 2</Button>
+                <Button variant="outline" size="sm" className="bg-surface" onClick={() => setSelectedZone(activeZones[2] ?? activeZones[0])}>Focus Zone 3</Button>
               </div>
             </CardContent>
           </Card>
@@ -464,7 +464,7 @@ export default function BuildingDetailPage() {
                 <div className="text-4xl font-bold text-[#111827] mt-2">{detail.aiConfidence}%</div>
                 <div className="mt-3 h-2 rounded-full bg-[#E5E7EB] overflow-hidden"><div className="h-full bg-[#22C55E] rounded-full" style={{ width: `${detail.aiConfidence}%` }} /></div>
               </div>
-              <Button variant="outline" size="sm" className="bg-white w-full" onClick={cycleDecisionState}>Cycle AI Decision State</Button>
+              <Button variant="outline" size="sm" className="bg-surface w-full" onClick={cycleDecisionState}>Cycle AI Decision State</Button>
             </CardContent>
           </Card>
         </SectionContainer>
@@ -478,8 +478,8 @@ export default function BuildingDetailPage() {
               <CardDescription>Spatial model, active floor, and a live mock control surface.</CardDescription>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="bg-white" onClick={refreshWeather}><Sparkles className="w-4 h-4" />Refresh Model</Button>
-              <Button variant="outline" size="sm" className="bg-white" onClick={() => scrollToSection("floors")}><MapPinned className="w-4 h-4" />Jump to Floors</Button>
+              <Button variant="outline" size="sm" className="bg-surface" onClick={refreshWeather}><Sparkles className="w-4 h-4" />Refresh Model</Button>
+              <Button variant="outline" size="sm" className="bg-surface" onClick={() => scrollToSection("floors")}><MapPinned className="w-4 h-4" />Jump to Floors</Button>
             </div>
           </CardHeader>
           <CardContent>
@@ -492,15 +492,15 @@ export default function BuildingDetailPage() {
                     <Badge variant="neutral">Live</Badge>
                   </div>
                   <div className="grid grid-cols-2 gap-4 mt-8">
-                    <div className="rounded-[18px] border border-[#E5E7EB] bg-white/90 p-4"><div className="text-xs uppercase font-semibold tracking-wider text-[#6B7280]">Control loop</div><div className="text-2xl font-bold text-[#111827] mt-2">{currentDecisionState}</div><p className="text-sm text-[#6B7280] mt-2">The model is adjusting temperature, load, and airflow together.</p></div>
-                    <div className="rounded-[18px] border border-[#E5E7EB] bg-white/90 p-4"><div className="text-xs uppercase font-semibold tracking-wider text-[#6B7280]">Supervisor status</div><div className="text-2xl font-bold text-[#111827] mt-2">{supervisorDecisionState}</div><p className="text-sm text-[#6B7280] mt-2">The operator trail stays synchronized with the autonomous decision.</p></div>
+                    <div className="rounded-[18px] border border-[#E5E7EB] bg-surface/90 p-4"><div className="text-xs uppercase font-semibold tracking-wider text-[#6B7280]">Control loop</div><div className="text-2xl font-bold text-[#111827] mt-2">{currentDecisionState}</div><p className="text-sm text-[#6B7280] mt-2">The model is adjusting temperature, load, and airflow together.</p></div>
+                    <div className="rounded-[18px] border border-[#E5E7EB] bg-surface/90 p-4"><div className="text-xs uppercase font-semibold tracking-wider text-[#6B7280]">Supervisor status</div><div className="text-2xl font-bold text-[#111827] mt-2">{supervisorDecisionState}</div><p className="text-sm text-[#6B7280] mt-2">The operator trail stays synchronized with the autonomous decision.</p></div>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-4">
-                <div className="rounded-[20px] border border-[#E5E7EB] p-4 bg-white"><div className="text-xs uppercase tracking-wider text-[#6B7280] font-semibold">Selected Zone</div><div className="text-xl font-semibold text-[#111827] mt-1">{selectedZone.name}</div><div className="text-sm text-[#6B7280] mt-2">{selectedZone.comfort}% comfort · {selectedZone.temperature}°F · {selectedZone.airflow} airflow</div></div>
-                <div className="rounded-[20px] border border-[#E5E7EB] p-4 bg-white"><div className="text-xs uppercase tracking-wider text-[#6B7280] font-semibold">Selected Floor</div><div className="text-xl font-semibold text-[#111827] mt-1">{selectedFloor.label}</div><div className="text-sm text-[#6B7280] mt-2">{selectedFloor.occupancy}% occupancy and a {selectedFloor.status} operating state.</div></div>
+                <div className="rounded-[20px] border border-[#E5E7EB] p-4 bg-surface"><div className="text-xs uppercase tracking-wider text-[#6B7280] font-semibold">Selected Zone</div><div className="text-xl font-semibold text-[#111827] mt-1">{selectedZone.name}</div><div className="text-sm text-[#6B7280] mt-2">{selectedZone.comfort}% comfort · {selectedZone.temperature}°F · {selectedZone.airflow} airflow</div></div>
+                <div className="rounded-[20px] border border-[#E5E7EB] p-4 bg-surface"><div className="text-xs uppercase tracking-wider text-[#6B7280] font-semibold">Selected Floor</div><div className="text-xl font-semibold text-[#111827] mt-1">{selectedFloor.label}</div><div className="text-sm text-[#6B7280] mt-2">{selectedFloor.occupancy}% occupancy and a {selectedFloor.status} operating state.</div></div>
               </div>
             </div>
           </CardContent>
@@ -514,7 +514,7 @@ export default function BuildingDetailPage() {
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
             {detail.floors.map((floor) => (
-              <Button key={floor.id} variant={selectedFloor.id === floor.id ? "primary" : "outline"} size="sm" className={selectedFloor.id === floor.id ? "bg-[#111827] text-white border-none" : "bg-white"} onClick={() => { setSelectedFloor(floor); setSelectedZone(detail.zonesByFloor[floor.id][0]); }}>
+              <Button key={floor.id} variant={selectedFloor.id === floor.id ? "primary" : "outline"} size="sm" className={selectedFloor.id === floor.id ? "bg-[#111827] text-white border-none" : "bg-surface"} onClick={() => { setSelectedFloor(floor); setSelectedZone(detail.zonesByFloor[floor.id][0]); }}>
                 {floor.label}
               </Button>
             ))}
@@ -537,7 +537,7 @@ export default function BuildingDetailPage() {
                   <div className="rounded-[16px] border border-[#E5E7EB] p-3"><div className="text-xs text-[#6B7280] uppercase font-semibold">Humidity</div><div className="text-lg font-semibold text-[#111827]">{zone.humidity}%</div></div>
                   <div className="rounded-[16px] border border-[#E5E7EB] p-3"><div className="text-xs text-[#6B7280] uppercase font-semibold">Comfort</div><div className="text-lg font-semibold text-[#111827]">{zone.comfort}</div></div>
                 </div>
-                <Button variant="outline" size="sm" className="w-full bg-white" onClick={() => setSelectedZone(zone)}>Focus Zone</Button>
+                <Button variant="outline" size="sm" className="w-full bg-surface" onClick={() => setSelectedZone(zone)}>Focus Zone</Button>
               </CardContent>
             </Card>
           ))}
@@ -572,7 +572,7 @@ export default function BuildingDetailPage() {
         <Card>
           <CardHeader>
             <div><CardTitle>Live Telemetry</CardTitle><CardDescription>Occupancy, energy, comfort, and carbon over the day.</CardDescription></div>
-            <div className="flex gap-2">{(["1h", "6h", "24h"] as const).map((window) => (<Button key={window} variant={timelineWindow === window ? "secondary" : "outline"} size="sm" className="bg-white" onClick={() => setTimelineWindow(window)}>{window}</Button>))}</div>
+            <div className="flex gap-2">{(["1h", "6h", "24h"] as const).map((window) => (<Button key={window} variant={timelineWindow === window ? "secondary" : "outline"} size="sm" className="bg-surface" onClick={() => setTimelineWindow(window)}>{window}</Button>))}</div>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-5 gap-4">
             {detail.telemetry.map((telemetry, index) => (
@@ -601,8 +601,8 @@ export default function BuildingDetailPage() {
               <div className="text-lg font-semibold text-[#111827]">{detail.currentDecision.label}</div>
               <div className="flex flex-wrap gap-2">
                 <Button variant="primary" size="sm" className="bg-[#111827] text-white border-none" onClick={cycleDecisionState}><PlayCircle className="w-4 h-4" />Run</Button>
-                <Button variant="outline" size="sm" className="bg-white" onClick={() => setCurrentDecisionState("paused")}><PauseCircle className="w-4 h-4" />Pause</Button>
-                <Button variant="outline" size="sm" className="bg-white" onClick={() => setCurrentDecisionState("ready")}><CircleCheckBig className="w-4 h-4" />Reset</Button>
+                <Button variant="outline" size="sm" className="bg-surface" onClick={() => setCurrentDecisionState("paused")}><PauseCircle className="w-4 h-4" />Pause</Button>
+                <Button variant="outline" size="sm" className="bg-surface" onClick={() => setCurrentDecisionState("ready")}><CircleCheckBig className="w-4 h-4" />Reset</Button>
               </div>
             </CardContent>
           </Card>
@@ -616,8 +616,8 @@ export default function BuildingDetailPage() {
               <div className="text-lg font-semibold text-[#111827]">{detail.supervisorDecision.label}</div>
               <div className="flex flex-wrap gap-2">
                 <Button variant="primary" size="sm" className="bg-[#111827] text-white border-none" onClick={updateSupervisorDecision}><ShieldCheck className="w-4 h-4" />Advance</Button>
-                <Button variant="outline" size="sm" className="bg-white" onClick={() => setSupervisorDecisionState("approved")}>Approve</Button>
-                <Button variant="outline" size="sm" className="bg-white" onClick={() => setSupervisorDecisionState("review")}>Review</Button>
+                <Button variant="outline" size="sm" className="bg-surface" onClick={() => setSupervisorDecisionState("approved")}>Approve</Button>
+                <Button variant="outline" size="sm" className="bg-surface" onClick={() => setSupervisorDecisionState("review")}>Review</Button>
               </div>
             </CardContent>
           </Card>
@@ -715,7 +715,7 @@ export default function BuildingDetailPage() {
           <Card>
             <CardHeader>
               <div><CardTitle>Selected Anomaly</CardTitle><CardDescription>{selectedAnomaly.system} review context</CardDescription></div>
-              <Button variant="outline" size="sm" className="bg-white" onClick={() => acknowledgeAlert(visibleAlerts[0]?.id)}>Review alert</Button>
+              <Button variant="outline" size="sm" className="bg-surface" onClick={() => acknowledgeAlert(visibleAlerts[0]?.id)}>Review alert</Button>
             </CardHeader>
             <CardContent>
               <div className="rounded-[20px] border border-[#E5E7EB] bg-[#FAFAFA] p-4">
@@ -732,7 +732,7 @@ export default function BuildingDetailPage() {
         <Card>
           <CardHeader>
             <div><CardTitle>Weather</CardTitle><CardDescription>Outdoor conditions feeding the control strategy.</CardDescription></div>
-            <Button variant="outline" size="sm" className="bg-white" onClick={refreshWeather}><RefreshCw className="w-4 h-4" />Toggle View</Button>
+            <Button variant="outline" size="sm" className="bg-surface" onClick={refreshWeather}><RefreshCw className="w-4 h-4" />Toggle View</Button>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="rounded-[18px] border border-[#E5E7EB] p-4 bg-[#FAFAFA]"><div className="text-xs uppercase tracking-wider text-[#6B7280] font-semibold">Temperature</div><div className="text-3xl font-bold text-[#111827] mt-2">{displayedWeather.temperature}°F</div></div>
@@ -747,7 +747,7 @@ export default function BuildingDetailPage() {
         <Card>
           <CardHeader>
             <div><CardTitle>Current Alerts</CardTitle><CardDescription>Mock live incidents tied to this building.</CardDescription></div>
-            <Button variant="outline" size="sm" className="bg-white" onClick={() => acknowledgeAlert()}>Clear All</Button>
+            <Button variant="outline" size="sm" className="bg-surface" onClick={() => acknowledgeAlert()}>Clear All</Button>
           </CardHeader>
           <CardContent className="space-y-3">
             {visibleAlerts.length === 0 ? (
@@ -759,7 +759,7 @@ export default function BuildingDetailPage() {
                     <div className="flex items-center gap-2 flex-wrap"><div className="font-semibold text-[#111827]">{alert.title}</div><Badge variant={alert.severity === "critical" ? "danger" : alert.severity === "high" ? "warning" : "neutral"}>{alert.severity}</Badge><Badge variant="neutral">{alert.source}</Badge></div>
                     <div className="text-sm text-[#6B7280] mt-1">{alert.timestamp}</div>
                   </div>
-                  <Button variant="outline" size="sm" className="bg-white" onClick={() => acknowledgeAlert(alert.id)}>Acknowledge</Button>
+                  <Button variant="outline" size="sm" className="bg-surface" onClick={() => acknowledgeAlert(alert.id)}>Acknowledge</Button>
                 </div>
               ))
             )}
@@ -779,7 +779,7 @@ export default function BuildingDetailPage() {
                 <div className="text-sm text-[#6B7280] mt-3">Confidence {agent.confidence}%</div>
                 <div className="text-xs text-[#6B7280] mt-1">{agent.lastAction}</div>
                 <div className="flex gap-2 mt-4">
-                  <Button variant="outline" size="sm" className="bg-white flex-1" onClick={() => toggleAgent(agent.id)}>{agent.status === "paused" ? "Resume" : "Pause"}</Button>
+                  <Button variant="outline" size="sm" className="bg-surface flex-1" onClick={() => toggleAgent(agent.id)}>{agent.status === "paused" ? "Resume" : "Pause"}</Button>
                   <Button variant="ghost" size="sm" onClick={() => setSimulationTick((current) => current + 1)}>Ping</Button>
                 </div>
               </div>

@@ -28,7 +28,7 @@ export function FilterBar({ activeFilter, onFilterChange, sortKey, onSortChange 
   return (
     <div className="flex items-center gap-6 overflow-x-auto pb-2 sm:pb-0 hide-scrollbar w-full whitespace-nowrap">
       <div className="flex items-center gap-2">
-        <span className="text-[12px] font-semibold text-gray-500 uppercase tracking-wider mr-2">Status</span>
+        <span className="text-[12px] font-semibold text-secondaryText uppercase tracking-wider mr-2">Status</span>
         {statuses.map((status) => (
           <button
             key={status.value}
@@ -36,7 +36,7 @@ export function FilterBar({ activeFilter, onFilterChange, sortKey, onSortChange 
             className={`px-3 py-1.5 rounded-md text-[13px] font-medium transition-colors border ${
               activeFilter === status.value
                 ? "bg-gray-900 text-white border-gray-900"
-                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:text-gray-900"
+                : "bg-surface text-secondaryText border-border hover:bg-background hover:text-primaryText"
             }`}
           >
             {status.label}
@@ -44,18 +44,18 @@ export function FilterBar({ activeFilter, onFilterChange, sortKey, onSortChange 
         ))}
       </div>
 
-      <div className="w-px h-6 bg-gray-200 hidden sm:block"></div>
+      <div className="w-px h-6 bg-border hidden sm:block"></div>
 
       <div className="flex items-center gap-2">
-        <span className="text-[12px] font-semibold text-gray-500 uppercase tracking-wider mr-2">Sort By</span>
+        <span className="text-[12px] font-semibold text-secondaryText uppercase tracking-wider mr-2">Sort By</span>
         {sorts.map((sort) => (
           <button
             key={sort.value}
             onClick={() => onSortChange(sort.value)}
             className={`px-3 py-1.5 rounded-md text-[13px] font-medium transition-colors border ${
               sortKey === sort.value
-                ? "bg-gray-100 text-gray-900 border-gray-300"
-                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:text-gray-900"
+                ? "bg-border text-primaryText border-gray-300"
+                : "bg-surface text-secondaryText border-border hover:bg-background hover:text-primaryText"
             }`}
           >
             {sort.label}

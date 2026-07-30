@@ -54,7 +54,7 @@ export function TopNavigation() {
           </button>
           
           {notificationsOpen && (
-            <div className="absolute right-0 mt-2 w-80 bg-white border border-[#E5E7EB] rounded-[16px] shadow-apple-hover overflow-hidden z-50">
+            <div className="absolute right-0 mt-2 w-80 bg-white border border-[#E5E7EB] rounded-[16px] shadow-soft-hover overflow-hidden z-50">
               <div className="p-3 border-b border-[#E5E7EB] flex items-center justify-between bg-[#FAFAFA]">
                 <span className="text-sm font-semibold text-[#111827]">Notifications</span>
                 <span className="text-xs text-[#2563EB] font-medium cursor-pointer">Mark all read</span>
@@ -101,7 +101,7 @@ export function TopNavigation() {
           </div>
 
           {profileOpen && (
-            <div className="absolute right-0 mt-2 w-56 bg-white border border-[#E5E7EB] rounded-[16px] shadow-apple-hover overflow-hidden z-50 p-1">
+            <div className="absolute right-0 mt-2 w-56 bg-white border border-[#E5E7EB] rounded-[16px] shadow-soft-hover overflow-hidden z-50 p-1">
               <div className="px-3 py-2.5 border-b border-[#E5E7EB] mb-1">
                 <p className="text-sm font-semibold text-[#111827]">Naveen Kumar</p>
                 <p className="text-xs text-[#6B7280] mt-0.5">Senior Facilities Engineer</p>

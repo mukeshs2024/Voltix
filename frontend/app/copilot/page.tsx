@@ -262,7 +262,7 @@ export default function CopilotPage() {
           </div>
 
           {/* Right: Chat Interface */}
-          <div className="col-span-1 lg:col-span-3 flex flex-col bg-white border border-[#E5E7EB] rounded-[24px] overflow-hidden shadow-apple" style={{ minHeight: 600 }}>
+          <div className="col-span-1 lg:col-span-3 flex flex-col bg-white border border-[#E5E7EB] rounded-[24px] overflow-hidden shadow-soft" style={{ minHeight: 600 }}>
 
             {/* Chat Header */}
             <div className="px-5 py-4 border-b border-[#E5E7EB] flex items-center gap-3 bg-[#FAFAFA]">
