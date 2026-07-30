@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from "react";
 import { Terminal } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 export interface TimelineItem {
   id: string;
