@@ -14,11 +14,12 @@ export function TimelineItemComponent({ item }: TimelineItemProps) {
 
   const getStatusIcon = (status: TimelineItemType["status"]) => {
     switch (status) {
-      case "completed":
+      case "Delivered":
+      case "Broadcast":
         return <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />;
-      case "warning":
+      case "Pending":
         return <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />;
-      case "error":
+      case "Error":
         return <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />;
       default:
         return <Info className="w-4 h-4 text-blue-600 shrink-0" />;
